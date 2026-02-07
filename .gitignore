@@ -1,3 +1,5 @@
 tmp/
 .ipynb_checkpoints/
 NL-*/
+data/
+Notebooks/data/
