@@ -21,7 +21,6 @@ This implementation captures the core architecture and training methodology of R
 - Edge dropout regularization
 
 ### Critical Issues ✗
-- **Duplicate forward passes in training** (major bug)
 - Hyperparameter mismatches with paper
 - Missing/incorrect regularization configuration
 - Different evaluation protocol
@@ -76,37 +75,6 @@ Correctly implements DistMult scoring function.
 ---
 
 ## 2. Training Procedure
-
-### 2.1 CRITICAL BUG: Duplicate Forward Passes ✗
-
-**Lines 46-50 in train() function:**
-```python
-# --- 3. Forward Pass con el GRAFO DROPEADO ---
-scores_pos = model(heads_pos, rels_pos, tails_pos, edge_index_dropped, edge_type_dropped)
-scores_neg = model(heads_neg, rels_neg, tails_neg, edge_index_dropped, edge_type_dropped)
-
-# Calcular scores para tripletas positivas y negativas
-scores_pos = model(heads_pos, rels_pos, tails_pos, edge_index, edge_type)  # ← DUPLICATE!
-scores_neg = model(heads_neg, rels_neg, tails_neg, edge_index, edge_type)  # ← DUPLICATE!
-```
-
-**Impact:** 
-- The model computes scores TWICE per batch
-- First with dropped edges (intended), then overwrites with full graph
-- **This defeats the entire purpose of edge dropout**
-- Training time is unnecessarily doubled
-- Results will differ from paper's intended training
-
-**Fix Required:**
-```python
-# Remove lines 49-50, keep only:
-scores_pos = model(heads_pos, rels_pos, tails_pos, edge_index_dropped, edge_type_dropped)
-scores_neg = model(heads_neg, rels_neg, tails_neg, edge_index_dropped, edge_type_dropped)
-```
-
-**Severity:** 🔴 CRITICAL - Invalidates training procedure
-
----
 
 ### 2.2 Loss Function ✓ MOSTLY CORRECT
 
