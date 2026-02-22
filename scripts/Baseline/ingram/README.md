@@ -27,4 +27,4 @@ python test.py \
 
 
 CMD build: 
-docker rmi ingramD
+docker rmi ingram
