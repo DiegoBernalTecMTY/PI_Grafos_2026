@@ -1,0 +1,142 @@
+========================================
+===== TRAINING FINISHED =====
+Total training time: 15052 seconds
+========================================
+===== TESTING LATEST CHECKPOINTS =====
+========================================
+Experiment: depth_ent_1
+Checkpoint: ckpt/depth_ent_1/FB-25/lr_0.0005_dim_32_32_bin_10_total_10000_every_200_neg_10_layer_1_2_hid_8_4_head_8_margin_2_10000.ckpt
+Layers: ent=1 rel=2
+Epoch: 10000
+/home/InGram/model.py:117: UserWarning: scatter_reduce() is in beta and the API may change at any time. (Triggered internally at  ../aten/src/ATen/native/TensorAdvancedIndexing.cpp:1550.)
+  attn_val_max = torch.zeros((num_rel, self.num_head, 1)).cuda().scatter_reduce(dim = 0, \
+-----Test Data Statistics-----
+Message set has 17147 triplets
+Supervision set has 5716 triplets
+4097 entities, 216 relations, 28579 triplets
+Test
+  0%|                                                                                                                                                                         | 0/5716 [00:00<?, ?it/s]/home/InGram/utils.py:24: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+  rank = (scores > thres).sum() + (scores == thres).sum()//2 + 1
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 5716/5716 [00:02<00:00, 2157.58it/s]
+--------LP--------
+MR: 569.8
+MRR: 0.088
+Hits@10: 0.176
+Hits@1: 0.040
+========================================
+Experiment: depth_ent_2
+Checkpoint: ckpt/depth_ent_2/FB-25/lr_0.0005_dim_32_32_bin_10_total_10000_every_200_neg_10_layer_2_2_hid_8_4_head_8_margin_2_10000.ckpt
+Layers: ent=2 rel=2
+Epoch: 10000
+/home/InGram/model.py:117: UserWarning: scatter_reduce() is in beta and the API may change at any time. (Triggered internally at  ../aten/src/ATen/native/TensorAdvancedIndexing.cpp:1550.)
+  attn_val_max = torch.zeros((num_rel, self.num_head, 1)).cuda().scatter_reduce(dim = 0, \
+-----Test Data Statistics-----
+Message set has 17147 triplets
+Supervision set has 5716 triplets
+4097 entities, 216 relations, 28579 triplets
+Test
+  0%|                                                                                                                                                                         | 0/5716 [00:00<?, ?it/s]/home/InGram/utils.py:24: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+  rank = (scores > thres).sum() + (scores == thres).sum()//2 + 1
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 5716/5716 [00:02<00:00, 2134.73it/s]
+--------LP--------
+MR: 338.4
+MRR: 0.100
+Hits@10: 0.222
+Hits@1: 0.041
+========================================
+Experiment: depth_ent_3
+Checkpoint: ckpt/depth_ent_3/FB-25/lr_0.0005_dim_32_32_bin_10_total_10000_every_200_neg_10_layer_3_2_hid_8_4_head_8_margin_2_10000.ckpt
+Layers: ent=3 rel=2
+Epoch: 10000
+/home/InGram/model.py:117: UserWarning: scatter_reduce() is in beta and the API may change at any time. (Triggered internally at  ../aten/src/ATen/native/TensorAdvancedIndexing.cpp:1550.)
+  attn_val_max = torch.zeros((num_rel, self.num_head, 1)).cuda().scatter_reduce(dim = 0, \
+-----Test Data Statistics-----
+Message set has 17147 triplets
+Supervision set has 5716 triplets
+4097 entities, 216 relations, 28579 triplets
+Test
+  0%|                                                                                                                                                                         | 0/5716 [00:00<?, ?it/s]/home/InGram/utils.py:24: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+  rank = (scores > thres).sum() + (scores == thres).sum()//2 + 1
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 5716/5716 [00:02<00:00, 2136.01it/s]
+--------LP--------
+MR: 326.8
+MRR: 0.101
+Hits@10: 0.225
+Hits@1: 0.040
+========================================
+Experiment: depth_rel_1
+Checkpoint: ckpt/depth_rel_1/FB-25/lr_0.0005_dim_32_32_bin_10_total_10000_every_200_neg_10_layer_2_1_hid_8_4_head_8_margin_2_10000.ckpt
+Layers: ent=2 rel=1
+Epoch: 10000
+/home/InGram/model.py:117: UserWarning: scatter_reduce() is in beta and the API may change at any time. (Triggered internally at  ../aten/src/ATen/native/TensorAdvancedIndexing.cpp:1550.)
+  attn_val_max = torch.zeros((num_rel, self.num_head, 1)).cuda().scatter_reduce(dim = 0, \
+-----Test Data Statistics-----
+Message set has 17147 triplets
+Supervision set has 5716 triplets
+4097 entities, 216 relations, 28579 triplets
+Test
+  0%|                                                                                                                                                                         | 0/5716 [00:00<?, ?it/s]/home/InGram/utils.py:24: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+  rank = (scores > thres).sum() + (scores == thres).sum()//2 + 1
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 5716/5716 [00:02<00:00, 2164.57it/s]
+--------LP--------
+MR: 378.3
+MRR: 0.097
+Hits@10: 0.222
+Hits@1: 0.034
+========================================
+Experiment: depth_rel_2
+Checkpoint: ckpt/depth_rel_2/FB-25/lr_0.0005_dim_32_32_bin_10_total_10000_every_200_neg_10_layer_2_2_hid_8_4_head_8_margin_2_10000.ckpt
+Layers: ent=2 rel=2
+Epoch: 10000
+/home/InGram/model.py:117: UserWarning: scatter_reduce() is in beta and the API may change at any time. (Triggered internally at  ../aten/src/ATen/native/TensorAdvancedIndexing.cpp:1550.)
+  attn_val_max = torch.zeros((num_rel, self.num_head, 1)).cuda().scatter_reduce(dim = 0, \
+-----Test Data Statistics-----
+Message set has 17147 triplets
+Supervision set has 5716 triplets
+4097 entities, 216 relations, 28579 triplets
+Test
+  0%|                                                                                                                                                                         | 0/5716 [00:00<?, ?it/s]/home/InGram/utils.py:24: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+  rank = (scores > thres).sum() + (scores == thres).sum()//2 + 1
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 5716/5716 [00:02<00:00, 2135.58it/s]
+--------LP--------
+MR: 330.0
+MRR: 0.112
+Hits@10: 0.242
+Hits@1: 0.048
+========================================
+Experiment: depth_rel_3
+Checkpoint: ckpt/depth_rel_3/FB-25/lr_0.0005_dim_32_32_bin_10_total_10000_every_200_neg_10_layer_2_3_hid_8_4_head_8_margin_2_10000.ckpt
+Layers: ent=2 rel=3
+Epoch: 10000
+/home/InGram/model.py:117: UserWarning: scatter_reduce() is in beta and the API may change at any time. (Triggered internally at  ../aten/src/ATen/native/TensorAdvancedIndexing.cpp:1550.)
+  attn_val_max = torch.zeros((num_rel, self.num_head, 1)).cuda().scatter_reduce(dim = 0, \
+-----Test Data Statistics-----
+Message set has 17147 triplets
+Supervision set has 5716 triplets
+4097 entities, 216 relations, 28579 triplets
+Test
+  0%|                                                                                                                                                                         | 0/5716 [00:00<?, ?it/s]/home/InGram/utils.py:24: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+  rank = (scores > thres).sum() + (scores == thres).sum()//2 + 1
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 5716/5716 [00:02<00:00, 2136.02it/s]
+--------LP--------
+MR: 377.9
+MRR: 0.084
+Hits@10: 0.184
+Hits@1: 0.032
+========================================
+===== TESTING FINISHED =====
+Total testing time: 55 seconds
+========================================
+========================================
+SUMMARY TABLE
+========================================
+Experiment      MRR      H@10     H@1     
+----------------------------------------
+depth_ent_1     0.088    0.176    0.040   
+depth_ent_2     0.100    0.222    0.041   
+depth_ent_3     0.101    0.225    0.040   
+depth_rel_1     0.097    0.222    0.034   
+depth_rel_2     0.112    0.242    0.048   
+depth_rel_3     0.084    0.184    0.032   
+========================================
+root@b85310528997:~/InGram# 
