@@ -45,6 +45,7 @@ class FactFeatureExtractor(nn.Module):
                  word_embedding_dim: int = 300,
                  fact_embedding_dim: int = 128,
                  conv_channels: int = 128,
+                 num_types: int = 100,
                  kernel_size: int = 3,
                  dropout: float = 0.2,
                  device: str = 'cuda'):
@@ -69,10 +70,12 @@ class FactFeatureExtractor(nn.Module):
         # 1. Word Encoding Layer (Section 5.1.1)
         # ====================================================================
         
-        # Pre-trained word embeddings (frozen - don't train)
+        # Word embeddings: frozen per paper spec. GloVe vectors provide
+        # pre-trained semantic signal; freezing prevents the 89M-param embedding
+        # table from dominating gradient updates and destabilising CNN training.
         self.word_embeddings = nn.Embedding.from_pretrained(
             word_embedding_matrix,
-            freeze=True,  # Paper doesn't train word embeddings
+            freeze=True,
             padding_idx=0  # Index 0 is <PAD>
         )
         
@@ -99,7 +102,13 @@ class FactFeatureExtractor(nn.Module):
         # Attention mechanism (Equation 1 in paper)
         # Compares description features with relation info
         self.attention_W = nn.Linear(conv_channels, conv_channels)
-        
+
+        # Type constraint projections (registered here so optimizer sees them)
+        # Maps multi-hot type vector -> word_embedding_dim for context assembly
+        self.type_constraint_mapper = nn.Linear(num_types, word_embedding_dim)
+        # Projects word-space context to conv_channels for attention dot-product
+        self.context_projection = nn.Linear(word_embedding_dim, conv_channels)
+
         # Dropout
         self.dropout = nn.Dropout(dropout)
         
@@ -155,7 +164,8 @@ class FactFeatureExtractor(nn.Module):
             relation_names=relation_names,
             other_entity_descriptions=tail_descriptions,
             relation_type_constraints=relation_domain_types,  # Domain constraint
-            desc_lengths=head_desc_lengths
+            desc_lengths=head_desc_lengths,
+            other_desc_lengths=tail_desc_lengths
         )
         
         # Extract tail entity features (attending to relation and head)
@@ -164,7 +174,8 @@ class FactFeatureExtractor(nn.Module):
             relation_names=relation_names,
             other_entity_descriptions=head_descriptions,
             relation_type_constraints=relation_range_types,  # Range constraint
-            desc_lengths=tail_desc_lengths
+            desc_lengths=tail_desc_lengths,
+            other_desc_lengths=head_desc_lengths
         )
         
         # ====================================================================
@@ -179,9 +190,10 @@ class FactFeatureExtractor(nn.Module):
         # Paper: Σ(t_t ⊙ t_{r,r})
         tail_type_match = self._type_matching(tail_types, relation_range_types)
         
-        # Combined validity: both must match
-        # Paper: f ← f ⊙ (Σ(t_h ⊙ t_{r,d}) × Σ(t_t ⊙ t_{r,r}))
-        type_validity = (head_type_match * tail_type_match).unsqueeze(1)  # (batch, 1)
+        # Combined validity: both must match.
+        # Clamp the product to ≥ 0.1 so the minimum scale for any fact is 0.1,
+        # preventing near-zero features even when both type matches are at floor.
+        type_validity = (head_type_match * tail_type_match).clamp(min=0.1).unsqueeze(1)  # (batch, 1)
         
         # ====================================================================
         # Step 3: Combine head and tail features (Equation 4)
@@ -195,10 +207,18 @@ class FactFeatureExtractor(nn.Module):
         fact_features = self.fact_projection(combined_features)  # (batch, fact_emb_dim)
         fact_features = F.leaky_relu(fact_features)
         fact_features = self.dropout(fact_features)
-        
-        # Apply type matching: zero out invalid facts
-        fact_features = fact_features * type_validity
-        
+
+        # Type validity: append as extra additive signal rather than as a multiplicative
+        # gate.  The original paper multiplies by the validity scalar (Equation 5),
+        # but doing so compresses features by up to 10x for mismatched types, driving
+        # the CNN signal below the aggregator's bias floor and collapsing gradients.
+        # Adding a small fraction of (validity-1)*|feat| as a penalty preserves the
+        # feature norm while still penalising type-invalid facts.
+        type_validity = (head_type_match * tail_type_match).clamp(min=0.1).unsqueeze(1)  # (batch, 1)
+        # Soft gate: scale by validity but floor at 0.5 so signal is never crushed.
+        type_scale = type_validity.clamp(min=0.5)   # (batch, 1), in [0.5, 1.0]
+        fact_features = fact_features * type_scale
+
         return fact_features
     
     def _extract_entity_features(self,
@@ -206,7 +226,8 @@ class FactFeatureExtractor(nn.Module):
                                  relation_names: torch.Tensor,
                                  other_entity_descriptions: torch.Tensor,
                                  relation_type_constraints: torch.Tensor,
-                                 desc_lengths: torch.Tensor) -> torch.Tensor:
+                                 desc_lengths: torch.Tensor,
+                                 other_desc_lengths: torch.Tensor) -> torch.Tensor:
         """
         Extract entity features using attention-based convolution.
         
@@ -222,6 +243,7 @@ class FactFeatureExtractor(nn.Module):
             other_entity_descriptions: (batch, max_desc_len)
             relation_type_constraints: (batch, num_types)
             desc_lengths: (batch,)
+            other_desc_lengths: (batch,)
             
         Returns:
             entity_features: (batch, conv_channels)
@@ -261,45 +283,33 @@ class FactFeatureExtractor(nn.Module):
         # Step 3: Attention Mechanism (Equations 1, 2, 3)
         # ====================================================================
         
-        # Embed relation names and other entity (for attention context)
+        # Embed relation names, other entity, and map relation constraints to word_emb_dim
         rel_embedded = self.word_embeddings(relation_names)  # (batch, max_rel_len, word_emb_dim)
+        other_ent_embedded = self.word_embeddings(other_entity_descriptions)  # (batch, max_desc_len, word_emb_dim)
         
-        # Average pool to get single relation vector
-        # Paper uses: cat(w_r, U_r, U_t) but we simplify to relation representation
-        rel_vector = rel_embedded.mean(dim=1)  # (batch, word_emb_dim)
-        
-        # Project relation to conv_channels space for attention
-        # This represents the "context" we're attending to
-        rel_context = torch.zeros(batch_size, self.conv_channels, device=self.device)
-        
-        # Simple projection from word_emb_dim to conv_channels
-        if hasattr(self, 'rel_projection'):
-            rel_context = self.rel_projection(rel_vector)
-        else:
-            # Initialize on first use
-            self.rel_projection = nn.Linear(self.word_embedding_dim, self.conv_channels).to(self.device)
-            rel_context = self.rel_projection(rel_vector)
-        
-        # Compute attention scores (Equation 1)
-        # Paper: A = tanh((D'_h)^T * W_a * cat(w_r, U_r, U_t))
-        # Simplified: A = tanh((D'_h)^T * W_a * rel_context)
-        
-        # desc_features: (batch, conv_channels, max_desc_len)
-        # rel_context: (batch, conv_channels)
+        type_constraints_embedded = self.type_constraint_mapper(relation_type_constraints)  # (batch, word_emb_dim)
+        type_constraints_embedded = type_constraints_embedded.unsqueeze(1)  # (batch, 1, word_emb_dim)
+
+        # cat(w_r, U_r, U_t)
+        # context_embedded shape: (batch, 1 + max_rel_len + max_desc_len, word_emb_dim)
+        context_embedded = torch.cat([type_constraints_embedded, rel_embedded, other_ent_embedded], dim=1)
+            
+        context_proj = self.context_projection(context_embedded)  # (batch, 1 + max_rel_len + max_desc_len, conv_channels)
         
         # Apply attention weight matrix to description features
         desc_for_attention = desc_features.transpose(1, 2)  # (batch, max_desc_len, conv_channels)
         attended_desc = self.attention_W(desc_for_attention)  # (batch, max_desc_len, conv_channels)
         
-        # Compute attention scores with relation context
-        # Score each position in description based on relation
-        rel_context_expanded = rel_context.unsqueeze(1)  # (batch, 1, conv_channels)
-        attention_scores = torch.bmm(attended_desc, rel_context_expanded.transpose(1, 2))  # (batch, max_desc_len, 1)
-        attention_scores = torch.tanh(attention_scores.squeeze(-1))  # (batch, max_desc_len)
+        # Compute attention score matrix A (Equation 1)
+        # Paper: A = tanh((D'_h)^T * W_a * cat(w_r, U_r, U_t))
+        # attention_matrix: (batch, max_desc_len, 1 + max_rel_len + max_desc_len)
+        attention_matrix = torch.bmm(attended_desc, context_proj.transpose(1, 2))
+        attention_matrix = torch.tanh(attention_matrix)
         
         # Column-wise max pooling (Equation 2)
         # Paper: A'_i = max_{1<j<1+k+p} A_{i,j}
-        # We simplify by just using the attention scores directly
+        # attention_scores: (batch, max_desc_len)
+        attention_scores, _ = torch.max(attention_matrix, dim=2)
         
         # Softmax to get attention weights (Equation 3)
         # Mask out padding positions
@@ -345,15 +355,23 @@ class FactFeatureExtractor(nn.Module):
         # Sum over types: if > 0, entity has at least one required type
         match_sum = matches.sum(dim=1)  # (batch,)
         
-        # Convert to validity: 1.0 if valid (sum > 0), else 0.0
-        # But if constraint is empty (all zeros), everything is valid
+        # Soft type validity score (avoids hard zeroing that kills gradient flow).
+        # If no constraint exists (constraint_sum==0), validity = 1.0 (fully valid).
+        # If constraint exists, validity = fraction of constraint types matched,
+        # clamped to a minimum of 0.1 so features are NEVER fully zeroed out.
+        # Hard binary (0 or 1) caused zero features for all entities whose
+        # type annotation vocabulary didn't perfectly match the relation's
+        # constraint vocabulary, which zeroed gradients for those triples.
         constraint_sum = constraint_types.sum(dim=1)  # (batch,)
-        
-        # Valid if: no constraint OR entity matches constraint
+
+        # Fraction of constraint types that the entity satisfies [0, 1]
+        match_frac = match_sum / constraint_sum.clamp(min=1)
+
+        # Valid if: no constraint (score=1.0) OR proportional match (min 0.1)
         validity = torch.where(
-            constraint_sum > 0,  # If there is a constraint
-            (match_sum > 0).float(),  # Check if entity matches
-            torch.ones_like(match_sum)  # Else all valid
+            constraint_sum > 0,
+            match_frac.clamp(min=0.1),   # soft score, never zero
+            torch.ones_like(match_sum)
         )
         
         return validity

@@ -1,0 +1,59 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_011339_frac30_new.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+Using 70% of training data  →  22,671 triples
+In-KG entities: 19,926  |  In-KG relations: 289
+Entities: 26354 | Relations: 384 | Types: 220
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55983 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,605
+   Words with freq >= 1: 296,605
+   Final vocabulary size: 296,607
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,607
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,642
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296607, 300])
+   - word2idx: 296,607 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 22,671
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 19,926 unique entities
+      Avg facts per entity: 2.3
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 22,671
+   Edges (adjacent fact pairs): 849,233
+   Avg degree: 37.5
+   Density: 0.001652
+
+Pre-tokenizing entities and relations...
+Pre-tokenization complete.
+torch.compile not available (module 'torch._functorch' has no attribute 'config'); continuing without it.
+
+Starting Training Loop...

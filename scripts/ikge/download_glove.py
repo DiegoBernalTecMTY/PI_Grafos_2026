@@ -71,17 +71,21 @@ def download_glove(output_dir='./embeddings', version='6B', dimension=300):
     url = urls[version]
     zip_path = output_dir / f'glove_{version}.zip'
     
-    print(f"📥 Downloading GloVe {version} embeddings...")
-    print(f"   URL: {url}")
-    print(f"   This may take a while (file is large)...")
-    
-    with DownloadProgressBar(unit='B', unit_scale=True, miniters=1, desc='Downloading') as t:
-        urllib.request.urlretrieve(url, zip_path, reporthook=t.update_to)
-    
-    print(f"\n✅ Download complete: {zip_path.stat().st_size / (1024**2):.1f} MB")
+    if zip_path.exists():
+        print(f"⏭️  Zip already downloaded: {zip_path} ({zip_path.stat().st_size / (1024**2):.1f} MB) — skipping download")
+    else:
+        print(f"📥 Downloading GloVe {version} embeddings...")
+        print(f"   URL: {url}")
+        print(f"   Destination: {zip_path}")
+        print(f"   This may take a while (file is large)...")
+        
+        with DownloadProgressBar(unit='B', unit_scale=True, miniters=1, desc='Downloading') as t:
+            urllib.request.urlretrieve(url, zip_path, reporthook=t.update_to)
+        
+        print(f"\n✅ Download complete: {zip_path.stat().st_size / (1024**2):.1f} MB")
     
     # Extract
-    print(f"\n📦 Extracting embeddings...")
+    print(f"\n📦 Extracting embeddings to {output_dir}...")
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
         zip_ref.extractall(output_dir)
     
@@ -163,15 +167,17 @@ def create_embedding_matrix(word2idx, glove_dict, mean_embedding, embedding_dim=
             embedding_matrix[idx] = glove_dict[word]
             found += 1
         else:
-            # Unknown word: use mean embedding
-            embedding_matrix[idx] = mean_embedding
-    
+            # Paper: Kaiming uniform (He) initialisation for OOV words.
+            # fan_in = embedding_dim; bound = sqrt(1/fan_in) * sqrt(3)
+            bound = (1.0 / np.sqrt(embedding_dim)) * np.sqrt(3.0)
+            embedding_matrix[idx] = np.random.uniform(-bound, bound, embedding_dim).astype('float32')
+
     coverage = (found / vocab_size) * 100
-    
+
     print(f"\n📊 Embedding Matrix Statistics:")
     print(f"   Vocabulary size: {vocab_size:,}")
     print(f"   Words found in GloVe: {found:,} ({coverage:.1f}%)")
-    print(f"   Words using mean embedding: {vocab_size - found:,}")
+    print(f"   Words using Kaiming uniform init: {vocab_size - found:,}")
     
     return torch.FloatTensor(embedding_matrix), coverage
 

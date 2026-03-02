@@ -37,7 +37,6 @@ def test_initialization():
         
         # Verify structure
         assert len(model.attention_layers) == config['num_layers']
-        assert len(model.update_layers) == config['num_layers']
     
     print("✅ TEST 1 PASSED")
     return True

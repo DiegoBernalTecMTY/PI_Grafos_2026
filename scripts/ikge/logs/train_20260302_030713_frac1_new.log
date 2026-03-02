@@ -1,0 +1,242 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_030713_frac1_new.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+In-KG entities: 24,092  |  In-KG relations: 323
+Entities: 29849 | Relations: 395 | Types: 220
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55994 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,616
+   Words with freq >= 1: 296,616
+   Final vocabulary size: 296,618
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,618
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,653
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296618, 300])
+   - word2idx: 296,618 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 32,388
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 24,092 unique entities
+      Avg facts per entity: 2.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 32,388
+   Edges (adjacent fact pairs): 1,689,734
+   Avg degree: 52.2
+   Density: 0.001611
+
+Pre-tokenizing entities and relations...
+entity_to_facts: 24092 entities indexed over 32388 training facts.
+Pre-tokenization complete.
+torch.compile enabled.
+
+Starting Training Loop...
+Epoch    1/200 | Loss: 1.2846
+Epoch    2/200 | Loss: 1.2801
+Epoch    3/200 | Loss: 1.2800
+Epoch    4/200 | Loss: 1.2799
+Epoch    5/200 | Loss: 1.2798
+Epoch    6/200 | Loss: 1.2843
+Epoch    7/200 | Loss: 1.3587
+Epoch    8/200 | Loss: 1.2589
+Epoch    9/200 | Loss: 1.2832
+Epoch   10/200 | Loss: 1.3430
+Epoch   11/200 | Loss: 1.1958
+Epoch   12/200 | Loss: 0.9582
+Epoch   13/200 | Loss: 1.2010
+Epoch   14/200 | Loss: 1.1427
+Epoch   15/200 | Loss: 1.3749
+Epoch   16/200 | Loss: 0.8994
+Epoch   17/200 | Loss: 0.9994
+Epoch   18/200 | Loss: 0.7139
+Epoch   19/200 | Loss: 0.9853
+Epoch   20/200 | Loss: 0.8076
+Epoch   21/200 | Loss: 1.3696
+Epoch   22/200 | Loss: 1.2704
+Epoch   23/200 | Loss: 1.2339
+Epoch   24/200 | Loss: 1.3716
+Epoch   25/200 | Loss: 0.9313
+Epoch   26/200 | Loss: 0.9684
+Epoch   27/200 | Loss: 1.1583
+Epoch   28/200 | Loss: 0.7496
+Epoch   29/200 | Loss: 0.7500
+Epoch   30/200 | Loss: 0.9529
+Epoch   31/200 | Loss: 1.2564
+Epoch   32/200 | Loss: 1.1355
+Epoch   33/200 | Loss: 1.1577
+Epoch   34/200 | Loss: 1.0432
+Epoch   35/200 | Loss: 1.2463
+Epoch   36/200 | Loss: 1.1320
+Epoch   37/200 | Loss: 1.0756
+Epoch   38/200 | Loss: 1.3667
+Epoch   39/200 | Loss: 0.9221
+Epoch   40/200 | Loss: 1.2805
+Epoch   41/200 | Loss: 1.0647
+Epoch   42/200 | Loss: 1.2974
+Epoch   43/200 | Loss: 1.3002
+Epoch   44/200 | Loss: 1.1428
+Epoch   45/200 | Loss: 1.3001
+Epoch   46/200 | Loss: 1.3211
+Epoch   47/200 | Loss: 1.3428
+Epoch   48/200 | Loss: 0.8876
+Epoch   49/200 | Loss: 1.1134
+
+[Epoch 50/200] Running validation (window best loss 0.7139 < prev inf)...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([29849, 256])
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.0001  | tail 0.0001  head 0.0001
+  Hits@1: 0.0000
+  Hits@3: 0.0000
+  Hits@10: 0.0000
+  Saved best MRR weights! MRR: 0.0001 → /workspace/ikge/ikge/ikge_best_mrr_20260302_030713.pt
+Epoch   50/200 | Loss: 1.3096 | Val MRR: 0.0001 | LR: 8.54e-03
+Epoch   51/200 | Loss: 1.0385
+Epoch   52/200 | Loss: 1.2808
+Epoch   53/200 | Loss: 0.8234
+Epoch   54/200 | Loss: 1.0271
+Epoch   55/200 | Loss: 1.3120
+Epoch   56/200 | Loss: 1.3003
+Epoch   57/200 | Loss: 1.2059
+Epoch   58/200 | Loss: 0.9930
+Epoch   59/200 | Loss: 1.3198
+Epoch   60/200 | Loss: 0.9842
+Epoch   61/200 | Loss: 1.1537
+Epoch   62/200 | Loss: 1.3482
+Epoch   63/200 | Loss: 1.2601
+Epoch   64/200 | Loss: 0.7322
+Epoch   65/200 | Loss: 1.1916
+Epoch   66/200 | Loss: 1.4172
+Epoch   67/200 | Loss: 1.4256
+Epoch   68/200 | Loss: 1.3135
+Epoch   69/200 | Loss: 1.2954
+Epoch   70/200 | Loss: 1.2980
+Epoch   71/200 | Loss: 1.3048
+Epoch   72/200 | Loss: 1.1949
+Epoch   73/200 | Loss: 1.1398
+Epoch   74/200 | Loss: 0.7352
+Epoch   75/200 | Loss: 0.7468
+Epoch   76/200 | Loss: 0.7842
+Epoch   77/200 | Loss: 1.2073
+Epoch   78/200 | Loss: 1.0168
+Epoch   79/200 | Loss: 0.7060
+Epoch   80/200 | Loss: 0.7042
+Epoch   81/200 | Loss: 1.1586
+Epoch   82/200 | Loss: 1.4607
+Epoch   83/200 | Loss: 1.2946
+Epoch   84/200 | Loss: 1.3746
+Epoch   85/200 | Loss: 1.2956
+Epoch   86/200 | Loss: 1.2852
+Epoch   87/200 | Loss: 0.9487
+Epoch   88/200 | Loss: 0.7058
+Epoch   89/200 | Loss: 0.7681
+Epoch   90/200 | Loss: 0.7014
+Epoch   91/200 | Loss: 0.7080
+Epoch   92/200 | Loss: 1.1777
+Epoch   93/200 | Loss: 1.3041
+Epoch   94/200 | Loss: 1.2926
+Epoch   95/200 | Loss: 1.2787
+Epoch   96/200 | Loss: 1.3711
+Epoch   97/200 | Loss: 1.3619
+Epoch   98/200 | Loss: 1.0404
+Epoch   99/200 | Loss: 0.7832
+
+[Epoch 100/200] Running validation (window best loss 0.7014 < prev 0.7139)...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([29849, 256])
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.0025  | tail 0.0006  head 0.0045
+  Hits@1: 0.0000
+  Hits@3: 0.0025
+  Hits@10: 0.0088
+  Saved best MRR weights! MRR: 0.0025 → /workspace/ikge/ikge/ikge_best_mrr_20260302_030713.pt
+Epoch  100/200 | Loss: 0.9442 | Val MRR: 0.0025 | LR: 5.00e-03
+Epoch  101/200 | Loss: 1.1620
+Epoch  102/200 | Loss: 1.2901
+Epoch  103/200 | Loss: 1.0474
+Epoch  104/200 | Loss: 0.7033
+Epoch  105/200 | Loss: 0.7160
+Epoch  106/200 | Loss: 0.7212
+Epoch  107/200 | Loss: 0.7138
+Epoch  108/200 | Loss: 0.7125
+Epoch  109/200 | Loss: 0.8612
+Epoch  110/200 | Loss: 1.0836
+Epoch  111/200 | Loss: 1.5121
+Epoch  112/200 | Loss: 1.4042
+Epoch  113/200 | Loss: 1.2867
+Epoch  114/200 | Loss: 1.3018
+Epoch  115/200 | Loss: 1.2924
+Epoch  116/200 | Loss: 1.3160
+Epoch  117/200 | Loss: 1.0053
+Epoch  118/200 | Loss: 1.3008
+Epoch  119/200 | Loss: 1.2847
+Epoch  120/200 | Loss: 1.2894
+Epoch  121/200 | Loss: 1.2602
+Epoch  122/200 | Loss: 1.2749
+Epoch  123/200 | Loss: 1.2402
+Epoch  124/200 | Loss: 1.3160
+Epoch  125/200 | Loss: 1.2685
+Epoch  126/200 | Loss: 1.2824
+Epoch  127/200 | Loss: 1.2866
+Epoch  128/200 | Loss: 1.2816
+Epoch  129/200 | Loss: 1.2853
+Epoch  130/200 | Loss: 1.2848
+Epoch  131/200 | Loss: 1.2858
+Epoch  132/200 | Loss: 1.2799
+Epoch  133/200 | Loss: 1.2835
+Epoch  134/200 | Loss: 1.2856
+Epoch  135/200 | Loss: 1.2817
+Epoch  136/200 | Loss: 1.2844
+Epoch  137/200 | Loss: 1.2896
+Epoch  138/200 | Loss: 1.2827
+Epoch  139/200 | Loss: 1.2831
+Epoch  140/200 | Loss: 1.2855
+Epoch  141/200 | Loss: 1.2891
+Epoch  142/200 | Loss: 1.3196
+Epoch  143/200 | Loss: 1.2828
+Epoch  144/200 | Loss: 1.2834
+Epoch  145/200 | Loss: 1.2850
+Epoch  146/200 | Loss: 1.2806
+Epoch  147/200 | Loss: 1.2826
+Epoch  148/200 | Loss: 1.2810
+Epoch  149/200 | Loss: 1.2828
+
+[Epoch 150/200] Skipping validation — no loss improvement this window (best 0.7033 ≥ prev 0.7014).
+Epoch  150/200 | Loss: 1.2819 | LR: 1.46e-03
+Epoch  151/200 | Loss: 1.2792
+Epoch  152/200 | Loss: 1.2822
+Epoch  153/200 | Loss: 1.2796
+Epoch  154/200 | Loss: 1.2820
+Epoch  155/200 | Loss: 1.2815
+Epoch  156/200 | Loss: 1.2825
+Epoch  157/200 | Loss: 1.2775
+Epoch  158/200 | Loss: 1.2788
+Epoch  159/200 | Loss: 1.2717

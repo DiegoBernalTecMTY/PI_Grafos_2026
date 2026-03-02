@@ -1,0 +1,121 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_022009_frac30_new.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+Using 30% of training data  →  9,716 triples
+In-KG entities: 11,622  |  In-KG relations: 218
+Entities: 19850 | Relations: 360 | Types: 220
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55959 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,581
+   Words with freq >= 1: 296,581
+   Final vocabulary size: 296,583
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,583
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,618
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296583, 300])
+   - word2idx: 296,583 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 9,716
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 11,622 unique entities
+      Avg facts per entity: 1.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 9,716
+   Edges (adjacent fact pairs): 151,321
+   Avg degree: 15.6
+   Density: 0.001603
+
+Pre-tokenizing entities and relations...
+entity_to_facts: 11622 entities indexed over 9716 training facts.
+Pre-tokenization complete.
+torch.compile enabled.
+
+Starting Training Loop...
+Epoch    1/200 | Loss: 1.3029
+Epoch    2/200 | Loss: 1.2834
+Epoch    3/200 | Loss: 1.2852
+Epoch    4/200 | Loss: 1.2889
+Epoch    5/200 | Loss: 1.2834
+Epoch    6/200 | Loss: 1.2849
+Epoch    7/200 | Loss: 1.2850
+Epoch    8/200 | Loss: 1.2834
+Epoch    9/200 | Loss: 1.2828
+Epoch   10/200 | Loss: 1.2837
+Epoch   11/200 | Loss: 1.2833
+Epoch   12/200 | Loss: 1.2839
+Epoch   13/200 | Loss: 1.2840
+Epoch   14/200 | Loss: 1.2840
+Epoch   15/200 | Loss: 1.2867
+Epoch   16/200 | Loss: 1.2870
+Epoch   17/200 | Loss: 1.2839
+Epoch   18/200 | Loss: 1.2851
+Epoch   19/200 | Loss: 1.2834
+Epoch   20/200 | Loss: 1.2864
+Epoch   21/200 | Loss: 1.2834
+Epoch   22/200 | Loss: 1.2844
+Epoch   23/200 | Loss: 1.2833
+Epoch   24/200 | Loss: 1.2847
+Epoch   25/200 | Loss: 1.2841
+Epoch   26/200 | Loss: 1.2839
+Epoch   27/200 | Loss: 1.2851
+Epoch   28/200 | Loss: 1.2846
+Epoch   29/200 | Loss: 1.2839
+Epoch   30/200 | Loss: 1.2841
+Epoch   31/200 | Loss: 1.2869
+Epoch   32/200 | Loss: 1.2847
+Epoch   33/200 | Loss: 1.2838
+Epoch   34/200 | Loss: 1.2845
+Epoch   35/200 | Loss: 1.2846
+Epoch   36/200 | Loss: 1.2861
+Epoch   37/200 | Loss: 1.2853
+Epoch   38/200 | Loss: 1.2848
+Epoch   39/200 | Loss: 1.2853
+Epoch   40/200 | Loss: 1.2852
+Epoch   41/200 | Loss: 1.2669
+Epoch   42/200 | Loss: 1.2864
+Epoch   43/200 | Loss: 1.2845
+Epoch   44/200 | Loss: 1.2834
+Epoch   45/200 | Loss: 1.2869
+Epoch   46/200 | Loss: 1.2839
+Epoch   47/200 | Loss: 1.2844
+Epoch   48/200 | Loss: 1.2837
+Epoch   49/200 | Loss: 1.2905
+
+[Epoch 50/200] Running validation...
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.8835  | tail 0.8058  head 0.9612
+  Hits@1: 0.8784
+  Hits@3: 0.8822
+  Hits@10: 0.8910
+  Saved best weights! MRR: 0.8835
+Epoch   50/200 | Loss: 1.2840 | Val MRR: 0.8835 | LR: 8.54e-04
+Epoch   51/200 | Loss: 1.2921
+Epoch   52/200 | Loss: 1.5662

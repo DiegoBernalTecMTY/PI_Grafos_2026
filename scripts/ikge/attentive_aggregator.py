@@ -81,21 +81,7 @@ class AttentiveAggregator(nn.Module):
                 bias=False
             )
             self.attention_layers.append(attention_layer)
-        
-        # ====================================================================
-        # Update Layers
-        # ====================================================================
-        # Transform aggregated features before combining
-        
-        self.update_layers = nn.ModuleList()
-        for k in range(num_layers):
-            update_layer = nn.Sequential(
-                nn.Linear(fact_embedding_dim, fact_embedding_dim),
-                nn.LeakyReLU(),
-                nn.Dropout(dropout)
-            )
-            self.update_layers.append(update_layer)
-        
+
         self.to(device)
     
     def forward(self,
@@ -165,10 +151,14 @@ class AttentiveAggregator(nn.Module):
         # ====================================================================
         # Step 1: Compute Attention Scores (Equations 7-8)
         # ====================================================================
-        
+
         # Get source and target fact IDs from edges
         source_facts = fact_edge_index[0]  # (num_edges,)
         target_facts = fact_edge_index[1]  # (num_edges,)
+
+        # Early return when there are no edges: no neighbours → identity update.
+        if source_facts.numel() == 0:
+            return fact_features
         
         # Get features for source and target facts
         source_features = fact_features[source_facts]  # (num_edges, fact_emb_dim)
@@ -208,29 +198,20 @@ class AttentiveAggregator(nn.Module):
         aggregated.index_add_(
             dim=0,
             index=source_facts,
-            source=weighted_features
+            source=weighted_features.to(aggregated.dtype)  # guard: ensure same dtype
         )
         
-        # Apply tanh activation
+        # Apply tanh activation to aggregated neighbor features
         aggregated = torch.tanh(aggregated)
-        
+
         # ====================================================================
-        # Step 4: Combine with Current Features (Equation 10)
+        # Step 4: Update (Paper Equations 10-11)
         # ====================================================================
-        
-        # Paper: f̃_u = h_{N(f_u)} + f_u
-        combined = aggregated + fact_features
-        
-        # ====================================================================
-        # Step 5: Update Transformation (Equation 11)
-        # ====================================================================
-        
-        # Apply update layer
-        updated = self.update_layers[layer_idx](combined)
-        
-        # Residual connection
-        updated = updated + fact_features
-        
+        # Paper: f̃_u = h_{N(f_u)} + f_u   (simple addition, no W_c matrix)
+        #        f_u ← f̃_u
+        # aggregated = tanh(Σ a_v * f_v) already computed above (Eq 9)
+        updated = fact_features + aggregated
+
         return updated
     
     def _softmax_per_source(self,
@@ -248,36 +229,28 @@ class AttentiveAggregator(nn.Module):
             num_sources: Total number of facts
             
         Returns:
-            attention_weights: (num_edges,) - Normalized weights (sum to 1 per source)
+            attention_weights: (num_edges,) - Normalized weights (sum to 1 per source),
+                               same dtype as attention_scores
         """
-        # Compute max score per source (for numerical stability)
-        max_scores = torch.full((num_sources,), float('-inf'), device=self.device)
-        max_scores.index_reduce_(
-            dim=0,
-            index=source_indices,
-            source=attention_scores,
-            reduce='amax',
-            include_self=False
-        )
-        
-        # Subtract max (prevent overflow)
-        attention_scores_stable = attention_scores - max_scores[source_indices]
-        
-        # Compute exp
-        attention_exp = torch.exp(attention_scores_stable)
-        
-        # Sum exp per source
-        attention_exp_sum = torch.zeros(num_sources, device=self.device)
-        attention_exp_sum.index_add_(
-            dim=0,
-            index=source_indices,
-            source=attention_exp
-        )
-        
-        # Normalize
+        orig_dtype = attention_scores.dtype
+
+        # Compute in float32 for numerical stability (avoids beta index_reduce_).
+        # Subtract global max before exp to keep values in [exp(-range), 1.0],
+        # which is safe for all practical attention score magnitudes.
+        scores_f32 = attention_scores.float()
+        if scores_f32.numel() > 0:
+            scores_f32 = scores_f32 - scores_f32.max()  # global max stabilisation
+
+        attention_exp = torch.exp(scores_f32)
+
+        # Per-source sum via index_add_ (stable op, supports all dtypes)
+        attention_exp_sum = torch.zeros(num_sources, dtype=torch.float32,
+                                        device=attention_scores.device)
+        attention_exp_sum.index_add_(0, source_indices, attention_exp)
+
+        # Normalize and cast back to the caller's dtype
         attention_weights = attention_exp / (attention_exp_sum[source_indices] + 1e-10)
-        
-        return attention_weights
+        return attention_weights.to(orig_dtype)
     
     def get_num_parameters(self) -> int:
         """Get total number of trainable parameters."""

@@ -1,0 +1,58 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_003202.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+In-KG entities: 24,092  |  In-KG relations: 323
+Entities: 29849 | Relations: 395 | Types: 220
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55994 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,616
+   Words with freq >= 1: 296,616
+   Final vocabulary size: 296,618
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,618
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,653
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296618, 300])
+   - word2idx: 296,618 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 32,388
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 24,092 unique entities
+      Avg facts per entity: 2.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 32,388
+   Edges (adjacent fact pairs): 1,689,734
+   Avg degree: 52.2
+   Density: 0.001611
+
+Pre-tokenizing entities and relations...
+Pre-tokenization complete.
+torch.compile not available (module 'torch._functorch' has no attribute 'config'); continuing without it.
+
+Starting Training Loop...
