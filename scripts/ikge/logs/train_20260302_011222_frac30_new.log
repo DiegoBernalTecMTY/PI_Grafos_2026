@@ -1,0 +1,79 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_011222_frac30_new.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+Using 30% of training data  →  9,716 triples
+In-KG entities: 11,622  |  In-KG relations: 218
+Entities: 19850 | Relations: 360 | Types: 220
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55959 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,581
+   Words with freq >= 1: 296,581
+   Final vocabulary size: 296,583
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,583
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,618
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296583, 300])
+   - word2idx: 296,583 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 9,716
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 11,622 unique entities
+      Avg facts per entity: 1.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 9,716
+   Edges (adjacent fact pairs): 151,321
+   Avg degree: 15.6
+   Density: 0.001603
+
+Pre-tokenizing entities and relations...
+Pre-tokenization complete.
+torch.compile not available (module 'torch._functorch' has no attribute 'config'); continuing without it.
+
+Starting Training Loop...
+Epoch    1/200 | Loss: 0.0714
+Epoch    2/200 | Loss: 0.0594
+Epoch    3/200 | Loss: 0.0000
+Epoch    4/200 | Loss: 0.0000
+Epoch    5/200 | Loss: 0.0000
+Epoch    6/200 | Loss: 0.0000
+Epoch    7/200 | Loss: 0.0000
+Epoch    8/200 | Loss: 0.0000
+Epoch    9/200 | Loss: 0.0000
+Epoch   10/200 | Loss: 0.0000
+Epoch   11/200 | Loss: 0.0000
+Epoch   12/200 | Loss: 0.0000
+Epoch   13/200 | Loss: 0.0000
+Epoch   14/200 | Loss: 0.0000
+Epoch   15/200 | Loss: 0.0000
+Epoch   16/200 | Loss: 0.0000
+Epoch   17/200 | Loss: 0.0000
+Epoch   18/200 | Loss: 0.0000
+Epoch   19/200 | Loss: 0.0000
+Epoch   20/200 | Loss: 0.0000

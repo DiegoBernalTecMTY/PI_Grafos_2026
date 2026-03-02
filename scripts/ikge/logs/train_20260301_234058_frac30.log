@@ -1,0 +1,295 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260301_234058_frac30.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+Using 30% of training data  →  9,716 triples
+Entities: 19850 | Relations: 360 | Types: 220
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55959 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,581
+   Words with freq >= 1: 296,581
+   Final vocabulary size: 296,583
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,583
+   Words found in GloVe: 86,965 (29.3%)
+   Words using mean embedding: 209,618
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296583, 300])
+   - word2idx: 296,583 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 9,716
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 11,622 unique entities
+      Avg facts per entity: 1.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 9,716
+   Edges (adjacent fact pairs): 151,321
+   Avg degree: 15.6
+   Density: 0.001603
+
+Pre-tokenizing entities and relations...
+Pre-tokenization complete.
+torch.compile enabled.
+
+Starting Training Loop...
+Epoch    1/200 | Loss: 1.3247
+Epoch    2/200 | Loss: 1.2442
+Epoch    3/200 | Loss: 1.1813
+Epoch    4/200 | Loss: 1.1316
+Epoch    5/200 | Loss: 1.0927
+Epoch    6/200 | Loss: 1.0618
+Epoch    7/200 | Loss: 1.0389
+Epoch    8/200 | Loss: 1.0205
+Epoch    9/200 | Loss: 1.0081
+Epoch   10/200 | Loss: 0.9998
+Epoch   11/200 | Loss: 0.9927
+Epoch   12/200 | Loss: 0.9871
+Epoch   13/200 | Loss: 0.9846
+Epoch   14/200 | Loss: 0.9842
+Epoch   15/200 | Loss: 0.9818
+Epoch   16/200 | Loss: 0.9794
+Epoch   17/200 | Loss: 0.9789
+Epoch   18/200 | Loss: 0.9769
+Epoch   19/200 | Loss: 0.9769
+Epoch   20/200 | Loss: 0.9745
+Epoch   21/200 | Loss: 0.9741
+Epoch   22/200 | Loss: 0.9741
+Epoch   23/200 | Loss: 0.9729
+Epoch   24/200 | Loss: 0.9716
+Epoch   25/200 | Loss: 0.9716
+Epoch   26/200 | Loss: 0.9704
+Epoch   27/200 | Loss: 0.9692
+Epoch   28/200 | Loss: 0.9692
+Epoch   29/200 | Loss: 0.9680
+Epoch   30/200 | Loss: 0.9668
+Epoch   31/200 | Loss: 0.9668
+Epoch   32/200 | Loss: 0.9656
+Epoch   33/200 | Loss: 0.9644
+Epoch   34/200 | Loss: 0.9644
+Epoch   35/200 | Loss: 0.9632
+Epoch   36/200 | Loss: 0.9620
+Epoch   37/200 | Loss: 0.9619
+Epoch   38/200 | Loss: 0.9607
+Epoch   39/200 | Loss: 0.9595
+Epoch   40/200 | Loss: 0.9583
+Epoch   41/200 | Loss: 0.9571
+Epoch   42/200 | Loss: 0.9571
+Epoch   43/200 | Loss: 0.9559
+Epoch   44/200 | Loss: 0.9546
+Epoch   45/200 | Loss: 0.9534
+Epoch   46/200 | Loss: 0.9534
+Epoch   47/200 | Loss: 0.9522
+Epoch   48/200 | Loss: 0.9509
+Epoch   49/200 | Loss: 0.9497
+
+[Epoch 50/200] Running validation...
+Running Evaluation Step...
+--- Evaluando Ranking en 399 tripletas ---
+Resultados Ranking: {'mrr': np.float64(0.9053898729057894), 'mr': np.float64(543.3934837092731), 'hits@1': np.float64(0.8446115288220551), 'hits@3': np.float64(0.9699248120300752), 'hits@10': np.float64(0.9724310776942355)}
+  Saved best weights! MRR: 0.9054
+Epoch   50/200 | Loss: 0.9484 | Val MRR: 0.9054 | LR: 1.00e-03
+Epoch   51/200 | Loss: 0.9470
+Epoch   52/200 | Loss: 0.9458
+Epoch   53/200 | Loss: 0.9458
+Epoch   54/200 | Loss: 0.9447
+Epoch   55/200 | Loss: 0.9433
+Epoch   56/200 | Loss: 0.9423
+Epoch   57/200 | Loss: 0.9410
+Epoch   58/200 | Loss: 0.9399
+Epoch   59/200 | Loss: 0.9387
+Epoch   60/200 | Loss: 0.9373
+Epoch   61/200 | Loss: 0.9363
+Epoch   62/200 | Loss: 0.9351
+Epoch   63/200 | Loss: 0.9328
+Epoch   64/200 | Loss: 0.9316
+Epoch   65/200 | Loss: 0.9304
+Epoch   66/200 | Loss: 0.9291
+Epoch   67/200 | Loss: 0.9280
+Epoch   68/200 | Loss: 0.9269
+Epoch   69/200 | Loss: 0.9256
+Epoch   70/200 | Loss: 0.9234
+Epoch   71/200 | Loss: 0.9222
+Epoch   72/200 | Loss: 0.9209
+Epoch   73/200 | Loss: 0.9187
+Epoch   74/200 | Loss: 0.9173
+Epoch   75/200 | Loss: 0.9163
+Epoch   76/200 | Loss: 0.9138
+Epoch   77/200 | Loss: 0.9127
+Epoch   78/200 | Loss: 0.9116
+Epoch   79/200 | Loss: 0.9092
+Epoch   80/200 | Loss: 0.9081
+Epoch   81/200 | Loss: 0.9058
+Epoch   82/200 | Loss: 0.9046
+Epoch   83/200 | Loss: 0.9023
+Epoch   84/200 | Loss: 0.9010
+Epoch   85/200 | Loss: 0.8988
+Epoch   86/200 | Loss: 0.8976
+Epoch   87/200 | Loss: 0.8953
+Epoch   88/200 | Loss: 0.8931
+Epoch   89/200 | Loss: 0.8919
+Epoch   90/200 | Loss: 0.8897
+Epoch   91/200 | Loss: 0.8872
+Epoch   92/200 | Loss: 0.8862
+Epoch   93/200 | Loss: 0.8840
+Epoch   94/200 | Loss: 0.8818
+Epoch   95/200 | Loss: 0.8805
+Epoch   96/200 | Loss: 0.8782
+Epoch   97/200 | Loss: 0.8759
+Epoch   98/200 | Loss: 0.8736
+Epoch   99/200 | Loss: 0.8725
+
+[Epoch 100/200] Running validation...
+Running Evaluation Step...
+--- Evaluando Ranking en 399 tripletas ---
+Resultados Ranking: {'mrr': np.float64(0.9053898775364733), 'mr': np.float64(541.6741854636591), 'hits@1': np.float64(0.8446115288220551), 'hits@3': np.float64(0.9699248120300752), 'hits@10': np.float64(0.9724310776942355)}
+  Saved best weights! MRR: 0.9054
+Epoch  100/200 | Loss: 0.8703 | Val MRR: 0.9054 | LR: 1.00e-03
+Epoch  101/200 | Loss: 0.8680
+Epoch  102/200 | Loss: 0.8657
+Epoch  103/200 | Loss: 0.8635
+Epoch  104/200 | Loss: 0.8624
+Epoch  105/200 | Loss: 0.8601
+Epoch  106/200 | Loss: 0.8580
+Epoch  107/200 | Loss: 0.8556
+Epoch  108/200 | Loss: 0.8534
+Epoch  109/200 | Loss: 0.8511
+Epoch  110/200 | Loss: 0.8489
+Epoch  111/200 | Loss: 0.8465
+Epoch  112/200 | Loss: 0.8457
+Epoch  113/200 | Loss: 0.8434
+Epoch  114/200 | Loss: 0.8412
+Epoch  115/200 | Loss: 0.8389
+Epoch  116/200 | Loss: 0.8365
+Epoch  117/200 | Loss: 0.8344
+Epoch  118/200 | Loss: 0.8323
+Epoch  119/200 | Loss: 0.8301
+Epoch  120/200 | Loss: 0.8278
+Epoch  121/200 | Loss: 0.8267
+Epoch  122/200 | Loss: 0.8240
+Epoch  123/200 | Loss: 0.8223
+Epoch  124/200 | Loss: 0.8208
+Epoch  125/200 | Loss: 0.8180
+Epoch  126/200 | Loss: 0.8163
+Epoch  127/200 | Loss: 0.8143
+Epoch  128/200 | Loss: 0.8125
+Epoch  129/200 | Loss: 0.8098
+Epoch  130/200 | Loss: 0.8088
+Epoch  131/200 | Loss: 0.8061
+Epoch  132/200 | Loss: 0.8045
+Epoch  133/200 | Loss: 0.8023
+Epoch  134/200 | Loss: 0.8002
+Epoch  135/200 | Loss: 0.7991
+Epoch  136/200 | Loss: 0.7970
+Epoch  137/200 | Loss: 0.7953
+Epoch  138/200 | Loss: 0.7932
+Epoch  139/200 | Loss: 0.7911
+Epoch  140/200 | Loss: 0.7901
+Epoch  141/200 | Loss: 0.7879
+Epoch  142/200 | Loss: 0.7857
+Epoch  143/200 | Loss: 0.7847
+Epoch  144/200 | Loss: 0.7826
+Epoch  145/200 | Loss: 0.7810
+Epoch  146/200 | Loss: 0.7799
+Epoch  147/200 | Loss: 0.7779
+Epoch  148/200 | Loss: 0.7768
+Epoch  149/200 | Loss: 0.7752
+
+[Epoch 150/200] Running validation...
+Running Evaluation Step...
+--- Evaluando Ranking en 399 tripletas ---
+Resultados Ranking: {'mrr': np.float64(0.9053898762186179), 'mr': np.float64(542.1604010025063), 'hits@1': np.float64(0.8446115288220551), 'hits@3': np.float64(0.9699248120300752), 'hits@10': np.float64(0.9724310776942355)}
+Epoch  150/200 | Loss: 0.7731 | Val MRR: 0.9054 | LR: 1.00e-03
+Epoch  151/200 | Loss: 0.7716
+Epoch  152/200 | Loss: 0.7705
+Epoch  153/200 | Loss: 0.7689
+Epoch  154/200 | Loss: 0.7679
+Epoch  155/200 | Loss: 0.7663
+Epoch  156/200 | Loss: 0.7648
+Epoch  157/200 | Loss: 0.7632
+Epoch  158/200 | Loss: 0.7622
+Epoch  159/200 | Loss: 0.7606
+Epoch  160/200 | Loss: 0.7590
+Epoch  161/200 | Loss: 0.7580
+Epoch  162/200 | Loss: 0.7570
+Epoch  163/200 | Loss: 0.7557
+Epoch  164/200 | Loss: 0.7541
+Epoch  165/200 | Loss: 0.7533
+Epoch  166/200 | Loss: 0.7520
+Epoch  167/200 | Loss: 0.7508
+Epoch  168/200 | Loss: 0.7500
+Epoch  169/200 | Loss: 0.7492
+Epoch  170/200 | Loss: 0.7474
+Epoch  171/200 | Loss: 0.7467
+Epoch  172/200 | Loss: 0.7459
+Epoch  173/200 | Loss: 0.7443
+Epoch  174/200 | Loss: 0.7436
+Epoch  175/200 | Loss: 0.7428
+Epoch  176/200 | Loss: 0.7421
+Epoch  177/200 | Loss: 0.7408
+Epoch  178/200 | Loss: 0.7400
+Epoch  179/200 | Loss: 0.7393
+Epoch  180/200 | Loss: 0.7380
+Epoch  181/200 | Loss: 0.7375
+Epoch  182/200 | Loss: 0.7367
+Epoch  183/200 | Loss: 0.7354
+Epoch  184/200 | Loss: 0.7347
+Epoch  185/200 | Loss: 0.7342
+Epoch  186/200 | Loss: 0.7336
+Epoch  187/200 | Loss: 0.7324
+Epoch  188/200 | Loss: 0.7319
+Epoch  189/200 | Loss: 0.7311
+Epoch  190/200 | Loss: 0.7306
+Epoch  191/200 | Loss: 0.7296
+Epoch  192/200 | Loss: 0.7291
+Epoch  193/200 | Loss: 0.7284
+Epoch  194/200 | Loss: 0.7278
+Epoch  195/200 | Loss: 0.7273
+Epoch  196/200 | Loss: 0.7263
+Epoch  197/200 | Loss: 0.7258
+Epoch  198/200 | Loss: 0.7253
+Epoch  199/200 | Loss: 0.7248
+
+[Epoch 200/200] Running validation...
+Running Evaluation Step...
+--- Evaluando Ranking en 399 tripletas ---
+Resultados Ranking: {'mrr': np.float64(0.9053898769738857), 'mr': np.float64(541.8771929824561), 'hits@1': np.float64(0.8446115288220551), 'hits@3': np.float64(0.9699248120300752), 'hits@10': np.float64(0.9724310776942355)}
+Epoch  200/200 | Loss: 0.7247 | Val MRR: 0.9054 | LR: 1.00e-03
+
+Loading best weights for final test evaluation...
+Running Final Test Evaluation on full test set...
+Running Evaluation Step...
+--- Evaluando Ranking en 10273 tripletas ---
+Resultados Ranking: {'mrr': np.float64(0.9267823388678939), 'mr': np.float64(683.1926409033389), 'hits@1': np.float64(0.8931178818261462), 'hits@3': np.float64(0.9630098315973912), 'hits@10': np.float64(0.9651513676628054)}
+--- Generando reporte PDF: /workspace/ikge/ikge/ikge_evaluation_report.pdf ---
+Reporte guardado exitosamente en: /workspace/ikge/ikge/ikge_evaluation_report.pdf
+================================================================================
+Training Complete
+Best Validation MRR : 0.9054
+Final Test MRR      : 0.9268
+Report generated    : /workspace/ikge/ikge/ikge_evaluation_report.pdf
+Weights saved       : /workspace/ikge/ikge/ikge_dbpedia50k_best_weights.pt
+================================================================================

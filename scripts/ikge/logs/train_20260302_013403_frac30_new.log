@@ -1,0 +1,338 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_013403_frac30_new.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+Using 30% of training data  →  9,716 triples
+In-KG entities: 11,622  |  In-KG relations: 218
+Entities: 19850 | Relations: 360 | Types: 220
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55959 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,581
+   Words with freq >= 1: 296,581
+   Final vocabulary size: 296,583
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,583
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,618
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296583, 300])
+   - word2idx: 296,583 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 9,716
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 11,622 unique entities
+      Avg facts per entity: 1.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 9,716
+   Edges (adjacent fact pairs): 151,321
+   Avg degree: 15.6
+   Density: 0.001603
+
+Pre-tokenizing entities and relations...
+entity_to_facts: 11622 entities indexed over 9716 training facts.
+Pre-tokenization complete.
+torch.compile enabled.
+
+Starting Training Loop...
+Epoch    1/200 | Loss: 1.3096
+Epoch    2/200 | Loss: 1.2854
+Epoch    3/200 | Loss: 1.3011
+Epoch    4/200 | Loss: 1.2841
+Epoch    5/200 | Loss: 1.2837
+Epoch    6/200 | Loss: 1.2828
+Epoch    7/200 | Loss: 1.3401
+Epoch    8/200 | Loss: 1.2849
+Epoch    9/200 | Loss: 1.3646
+Epoch   10/200 | Loss: 1.1787
+Epoch   11/200 | Loss: 0.7929
+Epoch   12/200 | Loss: 0.6852
+Epoch   13/200 | Loss: 0.6803
+Epoch   14/200 | Loss: 0.6783
+Epoch   15/200 | Loss: 0.6781
+Epoch   16/200 | Loss: 0.6827
+Epoch   17/200 | Loss: 0.6888
+Epoch   18/200 | Loss: 0.6841
+Epoch   19/200 | Loss: 0.6850
+Epoch   20/200 | Loss: 0.6782
+Epoch   21/200 | Loss: 0.6862
+Epoch   22/200 | Loss: 0.6894
+Epoch   23/200 | Loss: 0.6843
+Epoch   24/200 | Loss: 0.6815
+Epoch   25/200 | Loss: 0.6796
+Epoch   26/200 | Loss: 0.6834
+Epoch   27/200 | Loss: 0.6860
+Epoch   28/200 | Loss: 0.6801
+Epoch   29/200 | Loss: 0.6797
+Epoch   30/200 | Loss: 0.6791
+Epoch   31/200 | Loss: 0.6826
+Epoch   32/200 | Loss: 0.6793
+Epoch   33/200 | Loss: 0.6806
+Epoch   34/200 | Loss: 0.6801
+Epoch   35/200 | Loss: 0.6796
+Epoch   36/200 | Loss: 0.6798
+Epoch   37/200 | Loss: 0.6840
+Epoch   38/200 | Loss: 0.6797
+Epoch   39/200 | Loss: 0.6799
+Epoch   40/200 | Loss: 0.6786
+Epoch   41/200 | Loss: 0.6779
+Epoch   42/200 | Loss: 0.6826
+Epoch   43/200 | Loss: 0.6782
+Epoch   44/200 | Loss: 0.6838
+Epoch   45/200 | Loss: 0.6823
+Epoch   46/200 | Loss: 0.6810
+Epoch   47/200 | Loss: 0.6787
+Epoch   48/200 | Loss: 0.6791
+Epoch   49/200 | Loss: 0.6778
+
+[Epoch 50/200] Running validation...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([19850, 256])
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.0035  | tail 0.0011  head 0.0059
+  Hits@1: 0.0025
+  Hits@3: 0.0025
+  Hits@10: 0.0025
+  Saved best weights! MRR: 0.0035
+Epoch   50/200 | Loss: 0.6786 | Val MRR: 0.0035 | LR: 8.54e-03
+Epoch   51/200 | Loss: 0.6783
+Epoch   52/200 | Loss: 0.6781
+Epoch   53/200 | Loss: 0.6832
+Epoch   54/200 | Loss: 0.6786
+Epoch   55/200 | Loss: 0.6777
+Epoch   56/200 | Loss: 1.0484
+Epoch   57/200 | Loss: 1.4164
+Epoch   58/200 | Loss: 1.3407
+Epoch   59/200 | Loss: 1.1942
+Epoch   60/200 | Loss: 1.2666
+Epoch   61/200 | Loss: 1.7822
+Epoch   62/200 | Loss: 1.6370
+Epoch   63/200 | Loss: 1.4168
+Epoch   64/200 | Loss: 1.4136
+Epoch   65/200 | Loss: 0.6807
+Epoch   66/200 | Loss: 0.6793
+Epoch   67/200 | Loss: 0.6787
+Epoch   68/200 | Loss: 0.6780
+Epoch   69/200 | Loss: 0.6786
+Epoch   70/200 | Loss: 0.6785
+Epoch   71/200 | Loss: 0.6790
+Epoch   72/200 | Loss: 0.6787
+Epoch   73/200 | Loss: 0.6777
+Epoch   74/200 | Loss: 0.6781
+Epoch   75/200 | Loss: 0.6799
+Epoch   76/200 | Loss: 0.6779
+Epoch   77/200 | Loss: 0.6776
+Epoch   78/200 | Loss: 0.6779
+Epoch   79/200 | Loss: 0.6777
+Epoch   80/200 | Loss: 0.6778
+Epoch   81/200 | Loss: 0.6795
+Epoch   82/200 | Loss: 0.6785
+Epoch   83/200 | Loss: 0.6774
+Epoch   84/200 | Loss: 0.6791
+Epoch   85/200 | Loss: 0.6787
+Epoch   86/200 | Loss: 0.6784
+Epoch   87/200 | Loss: 0.6783
+Epoch   88/200 | Loss: 0.6782
+Epoch   89/200 | Loss: 0.6787
+Epoch   90/200 | Loss: 0.6794
+Epoch   91/200 | Loss: 0.6788
+Epoch   92/200 | Loss: 0.6781
+Epoch   93/200 | Loss: 0.6775
+Epoch   94/200 | Loss: 0.6792
+Epoch   95/200 | Loss: 0.6788
+Epoch   96/200 | Loss: 0.6796
+Epoch   97/200 | Loss: 0.6778
+Epoch   98/200 | Loss: 0.6782
+Epoch   99/200 | Loss: 0.6779
+
+[Epoch 100/200] Running validation...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([19850, 256])
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.0036  | tail 0.0028  head 0.0043
+  Hits@1: 0.0013
+  Hits@3: 0.0013
+  Hits@10: 0.0025
+  Saved best weights! MRR: 0.0036
+Epoch  100/200 | Loss: 0.6775 | Val MRR: 0.0036 | LR: 5.00e-03
+Epoch  101/200 | Loss: 0.6769
+Epoch  102/200 | Loss: 0.6787
+Epoch  103/200 | Loss: 0.6775
+Epoch  104/200 | Loss: 0.6780
+Epoch  105/200 | Loss: 0.6778
+Epoch  106/200 | Loss: 0.6788
+Epoch  107/200 | Loss: 0.6792
+Epoch  108/200 | Loss: 0.6787
+Epoch  109/200 | Loss: 0.6786
+Epoch  110/200 | Loss: 0.6779
+Epoch  111/200 | Loss: 0.6775
+Epoch  112/200 | Loss: 0.6782
+Epoch  113/200 | Loss: 0.6777
+Epoch  114/200 | Loss: 0.6779
+Epoch  115/200 | Loss: 0.6774
+Epoch  116/200 | Loss: 0.6789
+Epoch  117/200 | Loss: 0.6791
+Epoch  118/200 | Loss: 0.6778
+Epoch  119/200 | Loss: 0.6781
+Epoch  120/200 | Loss: 0.6784
+Epoch  121/200 | Loss: 0.6775
+Epoch  122/200 | Loss: 0.6781
+Epoch  123/200 | Loss: 0.6784
+Epoch  124/200 | Loss: 0.6776
+Epoch  125/200 | Loss: 0.6784
+Epoch  126/200 | Loss: 0.6783
+Epoch  127/200 | Loss: 0.6785
+Epoch  128/200 | Loss: 0.6777
+Epoch  129/200 | Loss: 0.6782
+Epoch  130/200 | Loss: 0.6808
+Epoch  131/200 | Loss: 0.6787
+Epoch  132/200 | Loss: 0.6772
+Epoch  133/200 | Loss: 0.6785
+Epoch  134/200 | Loss: 0.6785
+Epoch  135/200 | Loss: 0.6777
+Epoch  136/200 | Loss: 0.6794
+Epoch  137/200 | Loss: 0.6787
+Epoch  138/200 | Loss: 0.6776
+Epoch  139/200 | Loss: 0.6774
+Epoch  140/200 | Loss: 0.6784
+Epoch  141/200 | Loss: 0.6797
+Epoch  142/200 | Loss: 0.6781
+Epoch  143/200 | Loss: 0.6814
+Epoch  144/200 | Loss: 0.6788
+Epoch  145/200 | Loss: 0.6784
+Epoch  146/200 | Loss: 0.6774
+Epoch  147/200 | Loss: 0.6774
+Epoch  148/200 | Loss: 0.6788
+Epoch  149/200 | Loss: 0.6779
+
+[Epoch 150/200] Running validation...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([19850, 256])
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.0032  | tail 0.0027  head 0.0037
+  Hits@1: 0.0013
+  Hits@3: 0.0013
+  Hits@10: 0.0013
+Epoch  150/200 | Loss: 0.6788 | Val MRR: 0.0032 | LR: 1.46e-03
+Epoch  151/200 | Loss: 0.6778
+Epoch  152/200 | Loss: 0.6781
+Epoch  153/200 | Loss: 0.6784
+Epoch  154/200 | Loss: 0.6790
+Epoch  155/200 | Loss: 0.6779
+Epoch  156/200 | Loss: 0.6777
+Epoch  157/200 | Loss: 0.6790
+Epoch  158/200 | Loss: 0.6782
+Epoch  159/200 | Loss: 0.6783
+Epoch  160/200 | Loss: 0.6769
+Epoch  161/200 | Loss: 0.6780
+Epoch  162/200 | Loss: 0.6791
+Epoch  163/200 | Loss: 0.6787
+Epoch  164/200 | Loss: 0.6787
+Epoch  165/200 | Loss: 0.6779
+Epoch  166/200 | Loss: 0.6799
+Epoch  167/200 | Loss: 0.6792
+Epoch  168/200 | Loss: 0.6775
+Epoch  169/200 | Loss: 0.6783
+Epoch  170/200 | Loss: 0.6783
+Epoch  171/200 | Loss: 0.6774
+Epoch  172/200 | Loss: 0.6776
+Epoch  173/200 | Loss: 0.6785
+Epoch  174/200 | Loss: 0.6781
+Epoch  175/200 | Loss: 0.6791
+Epoch  176/200 | Loss: 0.6782
+Epoch  177/200 | Loss: 0.6781
+Epoch  178/200 | Loss: 0.6784
+Epoch  179/200 | Loss: 0.6790
+Epoch  180/200 | Loss: 0.6777
+Epoch  181/200 | Loss: 0.6780
+Epoch  182/200 | Loss: 0.6787
+Epoch  183/200 | Loss: 0.6784
+Epoch  184/200 | Loss: 0.6783
+Epoch  185/200 | Loss: 0.6792
+Epoch  186/200 | Loss: 0.6785
+Epoch  187/200 | Loss: 0.6786
+Epoch  188/200 | Loss: 0.6771
+Epoch  189/200 | Loss: 0.6779
+Epoch  190/200 | Loss: 0.6775
+Epoch  191/200 | Loss: 0.6778
+Epoch  192/200 | Loss: 0.6776
+Epoch  193/200 | Loss: 0.6784
+Epoch  194/200 | Loss: 0.6795
+Epoch  195/200 | Loss: 0.6779
+Epoch  196/200 | Loss: 0.6772
+Epoch  197/200 | Loss: 0.6774
+Epoch  198/200 | Loss: 0.6772
+Epoch  199/200 | Loss: 0.6772
+
+[Epoch 200/200] Running validation...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([19850, 256])
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.0033  | tail 0.0028  head 0.0038
+  Hits@1: 0.0013
+  Hits@3: 0.0013
+  Hits@10: 0.0013
+Epoch  200/200 | Loss: 0.6777 | Val MRR: 0.0033 | LR: 0.00e+00
+
+Loading best weights for final test evaluation...
+Running Final Test Evaluation on full test set...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([19850, 256])
+Running Evaluation Step...
+  Test triple breakdown:
+    O-O-X (tail out):           2104  → groups 1,3,4
+    X-O-O (head out):           2678  → groups 2,3,4
+    O-X-O (rel out):              39  → groups 1,2
+    O-X-X (rel+tail out):         97  → group 1
+    X-X-O (head+rel out):        348  → group 2
+    O-O-O (all in, not used):   5007
+
+──────────────────────────────────────────────────────────────────────
+  IKGE Paper-Exact Group Evaluation
+──────────────────────────────────────────────────────────────────────
+  Group                                          n      MRR      H@1      H@3     H@10
+──────────────────────────────────────────────────────────────────────
+  Group 1 - Head entity prediction            2240   0.0052   0.0004   0.0004   0.0018 (paper 0.34, diff -0.33)
+  Group 2 - Tail entity prediction            3065   0.0054   0.0000   0.0000   0.0016 (paper 0.61, diff -0.60)
+  Group 3 - Head+Tail entity prediction       4782   0.0001   0.0000   0.0000   0.0000 (paper 0.52, diff -0.52)
+  Group 4 - Relation prediction               4782   0.9837   0.9837   0.9837   0.9837 (paper 0.31, diff +0.67)
+──────────────────────────────────────────────────────────────────────
+  Overall (all groups)                       14869   0.3183   0.3164   0.3164   0.3170
+──────────────────────────────────────────────────────────────────────
+
+--- Generando reporte PDF: /workspace/ikge/ikge/ikge_evaluation_report.pdf ---
+Reporte guardado exitosamente en: /workspace/ikge/ikge/ikge_evaluation_report.pdf
+================================================================================
+Training Complete
+Best Validation MRR : 0.0036
+Final Test MRR      : 0.3183
+Report generated    : /workspace/ikge/ikge/ikge_evaluation_report.pdf
+Weights saved       : /workspace/ikge/ikge/ikge_dbpedia50k_best_weights.pt
+================================================================================

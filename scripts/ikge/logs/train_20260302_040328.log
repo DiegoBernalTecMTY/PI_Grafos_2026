@@ -1,0 +1,93 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_040328.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+In-KG entities: 24,092  |  In-KG relations: 323
+Entities: 29849 | Relations: 395 | Types: 219
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55994 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,616
+   Words with freq >= 1: 296,616
+   Final vocabulary size: 296,618
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,618
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,653
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296618, 300])
+   - word2idx: 296,618 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 32,388
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 24,092 unique entities
+      Avg facts per entity: 2.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 32,388
+   Edges (adjacent fact pairs): 1,689,734
+   Avg degree: 52.2
+   Density: 0.001611
+
+Pre-tokenizing entities and relations...
+entity_to_facts: 24092 entities indexed over 32388 training facts.
+Pre-tokenization complete.
+torch.compile enabled.
+
+Starting Training Loop...
+Epoch    1/200 | Loss: 1.3132
+Epoch    2/200 | Loss: 1.3133
+Epoch    3/200 | Loss: 1.3133
+Epoch    4/200 | Loss: 1.3133
+Epoch    5/200 | Loss: 1.3133
+Epoch    6/200 | Loss: 1.3138
+Epoch    7/200 | Loss: 1.3406
+Epoch    8/200 | Loss: 1.3481
+Epoch    9/200 | Loss: 1.4721
+  [Score diag] pos=415.2598±0.0000  neg=415.2598  gap=+0.0000  (gap>0 = model learning)
+Epoch   10/200 | Loss: 1.2915
+Epoch   11/200 | Loss: 1.2736
+Epoch   12/200 | Loss: 1.3133
+Epoch   13/200 | Loss: 1.3133
+Epoch   14/200 | Loss: 1.3133
+Epoch   15/200 | Loss: 1.3122
+Epoch   16/200 | Loss: 1.3133
+Epoch   17/200 | Loss: 1.3133
+Epoch   18/200 | Loss: 1.3133
+Epoch   19/200 | Loss: 1.3133
+  [Score diag] pos=147.9843±0.0000  neg=147.9843  gap=+0.0000  (gap>0 = model learning)
+Epoch   20/200 | Loss: 1.3133
+Epoch   21/200 | Loss: 1.3133
+Epoch   22/200 | Loss: 1.3133
+Epoch   23/200 | Loss: 1.3133
+Epoch   24/200 | Loss: 1.3133
+Epoch   25/200 | Loss: 1.3133
+Epoch   26/200 | Loss: 1.3133
+Epoch   27/200 | Loss: 1.3133
+Epoch   28/200 | Loss: 1.3133
+Epoch   29/200 | Loss: 1.3133
+  [Score diag] pos=134.9370±0.0000  neg=134.9370  gap=+0.0000  (gap>0 = model learning)
+Epoch   30/200 | Loss: 1.3133
+Epoch   31/200 | Loss: 1.3133

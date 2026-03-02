@@ -1,0 +1,150 @@
+Logging to: /workspace/ikge/ikge/logs/train_20260302_034400.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+In-KG entities: 24,092  |  In-KG relations: 323
+Entities: 29849 | Relations: 395 | Types: 219
+================================================================================
+🚀 SETTING UP GLOVE EMBEDDINGS FOR IKGE
+================================================================================
+✅ GloVe embeddings already exist: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+   Size: 989.9 MB
+
+📚 Building vocabulary from 55994 descriptions...
+✅ Vocabulary built:
+   Total unique words: 296,616
+   Words with freq >= 1: 296,616
+   Final vocabulary size: 296,618
+
+📖 Loading GloVe embeddings from: /workspace/ikge/ikge/embeddings/glove.6B.300d.txt
+✅ Loaded 86,965 word embeddings
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size: 296,618
+   Words found in GloVe: 86,965 (29.3%)
+   Words using Kaiming uniform init: 209,653
+
+================================================================================
+✅ GLOVE SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix: shape torch.Size([296618, 300])
+   - word2idx: 296,618 words
+   - GloVe coverage: 29.3%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 32,388
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 24,092 unique entities
+      Avg facts per entity: 2.7
+   Step 2: Finding adjacent facts...
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 32,388
+   Edges (adjacent fact pairs): 1,689,734
+   Avg degree: 52.2
+   Density: 0.001611
+
+Pre-tokenizing entities and relations...
+entity_to_facts: 24092 entities indexed over 32388 training facts.
+Pre-tokenization complete.
+torch.compile enabled.
+
+Starting Training Loop...
+Epoch    1/200 | Loss: 1.1381
+Epoch    2/200 | Loss: 0.9899
+Epoch    3/200 | Loss: 0.9717
+Epoch    4/200 | Loss: 0.9132
+Epoch    5/200 | Loss: 0.7986
+Epoch    6/200 | Loss: 0.7679
+Epoch    7/200 | Loss: 0.8094
+Epoch    8/200 | Loss: 0.7781
+Epoch    9/200 | Loss: 0.7430
+Epoch   10/200 | Loss: 0.8234
+Epoch   11/200 | Loss: 0.7618
+Epoch   12/200 | Loss: 0.7022
+Epoch   13/200 | Loss: 0.8427
+Epoch   14/200 | Loss: 0.8121
+Epoch   15/200 | Loss: 0.8087
+Epoch   16/200 | Loss: 0.7779
+Epoch   17/200 | Loss: 0.7655
+Epoch   18/200 | Loss: 0.7996
+Epoch   19/200 | Loss: 0.7818
+Epoch   20/200 | Loss: 0.7777
+Epoch   21/200 | Loss: 0.7933
+Epoch   22/200 | Loss: 0.7842
+Epoch   23/200 | Loss: 0.7875
+Epoch   24/200 | Loss: 0.8321
+Epoch   25/200 | Loss: 0.8600
+Epoch   26/200 | Loss: 0.8307
+Epoch   27/200 | Loss: 0.8069
+Epoch   28/200 | Loss: 0.8614
+Epoch   29/200 | Loss: 0.8286
+Epoch   30/200 | Loss: 0.7837
+Epoch   31/200 | Loss: 0.7514
+Epoch   32/200 | Loss: 0.7951
+Epoch   33/200 | Loss: 0.8357
+Epoch   34/200 | Loss: 0.8055
+Epoch   35/200 | Loss: 0.8053
+Epoch   36/200 | Loss: 0.8572
+Epoch   37/200 | Loss: 0.7616
+Epoch   38/200 | Loss: 0.8140
+Epoch   39/200 | Loss: 0.9042
+Epoch   40/200 | Loss: 0.8038
+Epoch   41/200 | Loss: 0.8288
+Epoch   42/200 | Loss: 0.8598
+Epoch   43/200 | Loss: 0.8401
+Epoch   44/200 | Loss: 0.9027
+Epoch   45/200 | Loss: 0.8330
+Epoch   46/200 | Loss: 0.8941
+Epoch   47/200 | Loss: 0.8816
+Epoch   48/200 | Loss: 0.9091
+Epoch   49/200 | Loss: 0.8418
+
+[Epoch 50/200] Running validation (window best loss 0.7022)...
+  Precomputing entity mean-agg context for eval...
+  entity_mean_agg built: torch.Size([29849, 256])
+Running Evaluation Step...
+--- Validation: filtered ranking on 399 triples (head+tail) ---
+  Val MRR (filtered): 0.0015  | tail 0.0025  head 0.0006
+  Hits@1: 0.0000
+  Hits@3: 0.0000
+  Hits@10: 0.0050
+  Saved best MRR weights! MRR: 0.0015 → /workspace/ikge/ikge/ikge_best_mrr_20260302_034400.pt
+Epoch   50/200 | Loss: 0.8510 | Val MRR: 0.0015 | LR: 8.54e-03
+Epoch   51/200 | Loss: 0.8632
+Epoch   52/200 | Loss: 0.8124
+Epoch   53/200 | Loss: 0.7929
+Epoch   54/200 | Loss: 0.8401
+Epoch   55/200 | Loss: 0.8444
+Epoch   56/200 | Loss: 0.8354
+Epoch   57/200 | Loss: 0.8263
+Epoch   58/200 | Loss: 0.8716
+Epoch   59/200 | Loss: 0.8252
+Epoch   60/200 | Loss: 0.8677
+Epoch   61/200 | Loss: 0.8051
+Epoch   62/200 | Loss: 0.8805
+Epoch   63/200 | Loss: 0.8596
+  [Loss ckpt] New best loss 0.6887 → /workspace/ikge/ikge/ikge_best_loss_20260302_034400.pt
+Epoch   64/200 | Loss: 0.6887
+Epoch   65/200 | Loss: 0.7850
+Epoch   66/200 | Loss: 0.8504
+Epoch   67/200 | Loss: 0.8109
+Epoch   68/200 | Loss: 0.7995
+Epoch   69/200 | Loss: 0.8358
+Epoch   70/200 | Loss: 0.8705
+Epoch   71/200 | Loss: 0.8616
+Epoch   72/200 | Loss: 0.7985
+Epoch   73/200 | Loss: 0.8361
+Epoch   74/200 | Loss: 0.8382
+Epoch   75/200 | Loss: 0.7859
+Epoch   76/200 | Loss: 0.8151
+Epoch   77/200 | Loss: 0.7961
+Epoch   78/200 | Loss: 0.8484
+Epoch   79/200 | Loss: 0.8624
