@@ -1,0 +1,53 @@
+entity2text : 55599 lines | 55599 unique entities
+  Duplicate entity entries : 0
+
+entity2type : 55599 lines | 55599 unique entities
+  Entities with MULTIPLE types : 0
+
+  Top 15 types:
+    dbo:Settlement: 7242
+    dbo:Person: 6457
+    dbo:MusicalArtist: 6157
+    dbo:SoccerClub: 4378
+    dbo:Band: 3923
+    http://www.w3.org/2002/07/owl#Thing: 3703
+    dbo:City: 2978
+    dbo:AdministrativeRegion: 1983
+    dbo:Company: 1418
+    dbo:OfficeHolder: 1204
+    dbo:Insect: 1139
+    dbo:University: 976
+    dbo:RecordLabel: 957
+    dbo:Town: 734
+    dbo:MilitaryConflict: 663
+
+relation2constraint : 629 lines | 629 unique relations
+  Relations with multiple constraint rows : 0
+  Relations with ONLY Thing/Thing (unconstrained): 231/629
+
+KG entities (all splits) : 29851
+  Missing descriptions   : 0
+  Missing types          : 0
+
+Training triples with type-specific constraints : 32388/32388 (100.0%)
+Training triples with no/Thing constraint       : 0/32388 (0.0%)
+
+Flat type match check on 20 typed training triples:
+  MISMATCH: (dbr:Country_pop, dbo:stylisticOrigin, dbr:Pop_music)
+    h_types={'dbo:MusicGenre'}  domain=dbo:MusicGenre  match=True
+    t_types={'dbo:MusicGenre'}  range =dbo:EthnicGroup   match=False
+  MISMATCH: (dbr:Aeridinae, dbo:family, dbr:Orchidaceae)
+    h_types={'dbo:Plant'}  domain=dbo:Cycad  match=False
+    t_types={'dbo:Plant'}  range =dbo:Cycad   match=False
+  MISMATCH: (dbr:ICS_Vortex, dbo:instrument, dbr:Guitar)
+    h_types={'dbo:MusicalArtist'}  domain=dbo:Artist  match=False
+    t_types={'http://www.w3.org/2002/07/owl#Thing'}  range =dbo:Company   match=False
+  MISMATCH: (dbr:Old_University_of_Leuven, dbo:city, dbr:Leuven)
+    h_types={'dbo:University'}  domain=dbo:SportsEvent  match=False
+    t_types={'dbo:Settlement'}  range =dbo:Village   match=False
+  MISMATCH: (dbr:Gughar_Rural_District, dbo:isPartOf, dbr:Baft_County)
+    h_types={'dbo:Settlement'}  domain=dbo:BodyOfWater  match=False
+    t_types={'dbo:Settlement'}  range =dbo:PublicTransitSystem   match=False
+
+Flat mismatch over all typed train triples: 31270/32388 (96.5%)
+(These fail because entity2type stores LEAF types; relation constraints use ANCESTOR types not in the file)

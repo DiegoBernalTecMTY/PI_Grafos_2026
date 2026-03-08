@@ -1,0 +1,822 @@
+Open-world knowledge graph completion for unseen entities
+and relations via attentive feature aggregation
+Byungkook Oh, Seungmin Seo, Jimin Hwang, Dongho Lee, Kyong-Ho Lee⇑
+Department of Computer Science, Yonsei University, Seoul, South Korea
+article info
+Article history:
+Received 1 September 2020
+Received in revised form 27 November 2021Accepted 28 November 2021Available online 3 December 2021
+Keywords:
+Knowledge graph embeddingLink predictionGraph-based learningGraph convolutional networksDeep learningAttention modelabstract
+Most of knowledge graph completion (KGC) models are designed for static KGs where
+entity and relation sets are ﬁxed. These approaches are inherently transductive because
+they simply predict the plausibility of facts whose entities and relations had to previously
+appear in the training phase. However, since entities and relations are constantly added,
+removed, or changed over time, KGC models should be able to generalize to out-of-KG enti-ties and relations in evolving KGs, which are more suited to real-world scenarios.
+Moreover, incorporating global graph-structured information into KGC models is another
+challenging issue. To overcome these issues, this paper proposes a novel Inductive KG
+Embedding (IKGE) model for open-world KGC, which accommodates out-of-KG entities
+and relations. Unlike training individual unique embeddings, the proposed model funda-
+mentally learns an embedding generator function to elaborately generate fact embeddings
+in an inductive manner. Speciﬁcally, the feature information of each fact is extracted as a
+vector from its entity-related and relation-related side information via an attention mech-
+anism. Then, to score a given fact, our neighborhood feature aggregator hierarchically accu-
+mulates the feature information of multi-hop neighbors. Experimental results show thatIKGE outperforms existing approaches in both transductive and inductive setups by suc-
+cessfully aggregating neighborhood features.
+/C2112021 Elsevier Inc. All rights reserved.
+1. Introduction
+Knowledge graphs (KGs) are efﬁcient data models, which structuralize real-world facts about entities and organically link
+them for machine understandability. Each fact in KGs is typically expressed as a directional relationship hh;r;ti(edge), where
+head entity hand tail entity t(nodes) are connected to each other via a semantic relation r(edge type). Recently, KGs have
+been spotlighted since they facilitate the semantic integration and interoperation of heterogeneous data. Prominent large-
+scale KGs, such as DBpedia [1], YAGO [2], NELL [3], WikiData [4], Freebase [5], WordNet [6], and Google Knowledge Graph,1
+have been constructed for various practical applications, including question answering [7], recommender systems [8,9] , infor-
+mation extraction [10,11] , and entity linking [12,13] . However, the symbolic nature and arbitrary structure of such facts make it
+hard to elaborately manipulate KGs in many knowledge inference tasks.
+In recent years, knowledge graph embedding (KGE) has become a successful and promising approach, especially in the
+knowledge graph completion (KGC) tasks including link prediction and triple classiﬁcation. Given two elements in a fact
+https://doi.org/10.1016/j.ins.2021.11.085
+0020-0255/ /C2112021 Elsevier Inc. All rights reserved.⇑Corresponding author.
+E-mail addresses: smseo@icl.yonsei.ac.kr (S. Seo), jmhwang@icl.yonsei.ac.kr (J. Hwang), dhlee@icl.yonsei.ac.kr (D. Lee), khlee89@yonsei.ac.kr (K.-H. Lee).
+1https://developers.google.com/knowledge-graph .Information Sciences 586 (2022) 468–484
+Contents lists available at ScienceDirect
+Information Sciences
+journal homepage: www.elsevier.com/locate/ins
+
+
+hh;r;tiwith a scoring function frðh;tÞ, link prediction decides the remaining element that yields the highest plausibility score
+of the fact. Triple classiﬁcation checks whether an unseen fact, not contained in training data, is valid or not based on a
+relation-speciﬁc threshold learned in advance. The key idea behind embedding-based KGC is to automatically embed struc-
+tural information into latent task-speciﬁc low-dimensional vectors (or matrices) through maximizing the total plausibility
+score of existing facts in KGs. Based on the score of a given fact, KGC tasks reﬁne KGs often suffering from incompleteness
+and noise even in manually curated KGs.
+Despite the successes of the KGC models, they have a serious limitation: KGE for KGC mostly learns only from static KGs
+where entity and relation sets are ﬁxed. This is often called the closed-world assumption [14]. They score a fact hh;r;tiin a
+test phase, where entities hand t, and relation rhad to previously appear while training. In other words, they do not target
+evolving KGs more suited to real-world scenarios, where entities and relations are constantly added, removed, or changed
+over time (i.e., open-world assumption) and maintain connectivity patterns and semantic meanings. In practice, NELL has
+continuously collected the facts extracted from the Web since 2010. DBpedia added 200 new entities every day for 6 months
+in 2016 in addition to a lot of the facts changed and deleted [14]. In the existing literature [14,15] , the emerging entities and
+relations are referred to as out-of-KG entities and relations. KGC dealing with them is also known as open-world (or zero-
+shot) KGC.
+There are several crucial issues to support the out-of-KG entities and relations for open-world KGC:
+/C15[C1] Generating Embedding: Open-world KGC should be able to decide the plausibility of test facts even though entities
+and relations were not seen during training. This is hard for the conventional KGC models because they are inherently
+transductive (i.e., under closed-world assumption), where entities and relations are assigned unique vector representa-
+tions to be learned. It is challenging to generate new embeddings for both unseen entities and relations on the ﬂy (aka
+inductive learning), instead of simply retraining per the snapshot of an evolving KG.
+/C15[C2] Preserving Structure: Since KGE typically exploits the structural similarity of connectivity (statistical) patterns in a
+KG[16], local neighborhood structure for each fact helps in improving the predictive power of its embedding. Due to the
+arbitrary structure of KGs, most models only consider local structures such as 1-hop neighbors or relation paths. It is chal-
+lenging to incorporate global graph-structured information (e.g., multi-hop neighborhoods) into the fact embeddings.
+However, there are only a few KGC models partially addressing these challenges. The compositional vector space model
+for open-world KGC [17] computes the vector representation of arbitrary-length relation paths and determines pre-learned
+unseen relations corresponding to the path vectors. Recently, ConMask [14] and DKRL [15] exploit entity descriptions to gen-
+erate entity embeddings. Since the above models only handle either out-of-KG entities or relations for open-world KGC, they
+satisfy C1partially. LiLi [18] continuously and interactively learns new knowledge via a dialogue system in a lifelong learning
+manner, which retains new facts acquired during the conversation and leverages them in future learning. Thus, they handle
+both out-of-KG entities and relations in evolving KGs. However, they are less challenging than a holistic manner because
+they need interactions and sequential independent subtasks such as relation resolution, entity linking, etc. Moreover, all
+of the above models do not fulﬁll C2. Note that, although several state-of-the-art graph embedding (GE) models satisfy
+C2, they are less challenging than KGE. The reason is that they consider only nodes (i.e., entities) but not relations and do
+not deal with the open-world KGC task.
+To tackle the above challenges, this paper proposes a novel Inductive KGE (IKGE) model for open-world KGC, which
+enables to efﬁciently generalize to out-of-KG entities and relations without model retraining while preserving graph struc-
+ture. Unlike most existing transductive KGC models, the proposed model is inductive by fundamentally learning an embed-
+ding generator function to compute the vector representations of the facts containing out-of-KG entities and relations. Multi-
+hop neighborhoods are also considered to reﬂect graph-structured information in the embedding generation process.
+Speciﬁcally, entities in a given fact are encoded into entity features from their description, where the description words
+are shared across all facts. Since the same description word may have different impacts on identifying facts, an attention
+mechanism is additionally employed in the entity encoding to capture more relevant description words for the fact. Then,
+the head and tail entity feature vectors are combined to extract fact features and utilized as an initial fact embedding. As
+a result, for each fact in a KG, the proposed approach inductively generates the fact embedding from its side information.
+The words in side information are shared across all facts to generalize facts whether or not they include out-of-KG entities
+and/or relations. As shown in Fig. 1 , the State/Massachusetts-speciﬁc entity features for Harvard _University and the
+State/Harvard _University -speciﬁc entity features for Massachusetts are extracted from the word-level shared side
+information and then combined to create fact features as an initial fact embedding. .
+Then, IKGE collects multi-hop neighborhood features through the in-KG entities. Inspired by [19], our feature aggregator
+hierarchically accumulates fact feature vectors from the multi-hop neighbors to the target fact. By utilizing the aggregated
+neighborhood vector and the target fact’s initial embedding, IKGE gets the inductively generated vector of the target fact and
+incorporates global graph-structured information into the target fact vector. This allows us to address the challenges C1and
+C2simultaneously. Moreover, with the above type constraints, the feature information can be reduced and aggregated by
+type matching in an end-to-end manner.
+Thus, facts and their relationships are identiﬁed based on the semantic similarity between word-level shared side infor-
+mation. Since the side information of a relation is much less, it is difﬁcult to specify each relation. Instead, the proposedB. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+469
+
+model focuses on determining the plausibility of a target fact (i.e., open-world KGC) based on a scoring function. IKGE con-
+ducts link prediction and triple classiﬁcation in the open-world scenario. Note that IKGE handles out-of-KG entities and rela-
+tions even without considering its relation embedding. Experimental results show that IKGE outperforms all existing
+approaches in both transductive and inductive setups by successfully aggregating neighborhood features.
+2. Related work
+The main goal of GE/KGE is to learn embeddings of graphs while preserving graph structure and various side information.
+Most GE/KGE models can be described as an encoder-decoder structure. Here, an encoder maps a symbolic graph component
+to a learnable embedding. Given the embeddings, a decoder then optimizes them to decode task-speciﬁc information to be
+preserved, e.g., node-pair similarity for clustering or node-edge-node validity for link prediction. Readers may refer to com-
+prehensive recent surveys on GE [20] and KGE [16,21] . Encoders can be roughly classiﬁed into simple and complex encoding
+approaches.
+The complex encoding approaches in GE and KGE are related to open-world learning. Open-world learning predicts
+unseen classes which do not belong to training data, whereas supervised learning assumes that test data always belong
+to known classes [22]. GE/KGE models in open-world scenarios focus on the out-of-graph nodes or edges that have no
+pre-assigned representations to be learned. In order to predict them, the vector representations generated from their side
+information are required.
+Simple Encoding Approach. Simple encoders directly optimize a unique embedding assigned to each node. Then, tradi-
+tional GE models employ a pairwise decoder to approximate the similarity (e.g., inner product) of two embeddings to node-
+pair similarity in graphs (e.g., adjacency matrix). A lot of studies embed graphs via a pairwise decoder while preserving the
+local proximities of nodes in random walks [23–25] or additionally preserving the ﬁrst-order proximity between connected
+two nodes [25]. Intuitively, KGE is more challenging than GE due to the nature of labeled directed edges. Thus, KGC models
+extend pairwise decoders to triple-wise decoders with relation-speciﬁc parameters to score facts.
+Fig. 1. Example of a fact feature extraction process. Entity features extracted from relation-related (name and type constraints) and entity-related (nam e,
+description, and types) side information are combined to inductively generate fact features as initial fact embedding.B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+470
+
+Traditional KGC models, including translational and compositional models, embed entities and relations based on the
+structural (topological) similarity obtained from connectivity patterns in KGs. The topology-based models leverage only
+structural information without side information, e.g., a single fact alone [26–28] and multiple facts such as neighborhoods
+[29] and relation paths [17].
+However, since real-world KGs hold a tremendous number of entities and relatively very sparse links, it is not easy to
+characterize an individual entity or relation via the topology-based embeddings. To cope with the problem, the main focus
+of recent KGC models lies in better characterizing entities and relations than the topology-based models by exploiting a vari-
+ety of side information associated with a given fact, such as entity types, textual descriptions, images, non-discrete attri-
+butes, and even logical rules. With the beneﬁcial features, there has been a surge of advanced KGC models that
+incorporate some side information into their scoring functions. Therefore, compared to the topology-based models, advanced
+KGC models can learn predictive embeddings, which better characterize entities and relations individually so as to further
+improve the KGC tasks.
+The compositional vector space model supports an open-world KGC [17] by computing the vector representations of
+arbitrary-length relation paths between two entities. Then, an unseen relation between the entities can be determined by
+comparing the path vector with pre-trained relation vectors. However, they only aim to predict an unseen relation (not
+entity) from a ﬁxed relation set with pre-trained embeddings. Recently, ConMask [14] and DKRL [15] exploit entity descrip-
+tions to generate entity embeddings. However, unlike our IKGE model, the models cannot handle both out-of-KG entities and
+relations at the same time for open-world KGC.
+Complex Encoding Approach. Complex encoders learn functions to elaborately generate node embeddings compared to
+the simple encoders that directly optimize a unique embedding assigned to each node. Thus, most complex encoders are
+usually combined with any decoder of simple encoding models (e.g., node2vec [24] and DeepWalk [23]) for speciﬁc down-
+stream tasks.
+Graph convolutional networks (GCNs) adapt a convolution operation to arbitrarily structured graphs. Given a node, GCN-
+based complex encoders exploit local neighborhood structure and various features (e.g., image, text) of neighbors to obtain
+its embedding. Patchy-san [30] normalizes a local neighborhood of each node to uniquely transform the neighbors into a
+node sequence via a pre-deﬁned node ordering. The node sequences are utilized as receptive ﬁelds for convolutions. GCNs
+based on spectral convolutions are ﬁrst proposed by [31], where the key idea is to compute a node embedding by iteratively
+aggregating its local neighborhood features fully [32] or partially [19]. Inspired by the works, R-GCNs [33] extends GCNs for
+KGC by employing a scoring function (i.e., decoder) of existing KGC models such as DistMult [27] and ComplEx [28]. Despite
+the success of GCNs, most models are developed for a transductive inference over ﬁxed graphs because a node embedding is
+generated with the full graph Laplacian and the features of a node and its neighbors.
+Recently, inductive GE models have received signiﬁcant attention which can generalize to evolving nodes. GraphSAGE
+[19], an extended GCN encoder, enables to generate a node embedding of a new node by aggregating features of sampled
+local neighbors. However, the new node must have connections to existing nodes for integrating its neighbors’ features.
+3. Preliminaries
+First of all, we introduce some notations used in the rest of this paper. Boldface upper-case (e.g., F) and lower-case (e.g., f)
+letters represent matrices/tensors and vectors, respectively. Sets are expressed in non-bold upper-case type (e.g., F),
+whereas variables or scalar values are represented in non-bold lower-case type (e.g., f).
+A typical knowledge graph G¼fh h;r;tig#E/C2R/C2Ecan be intrinsically represented by a labeled directed graph, where
+EandRindicate the ﬁxed sets of entities and relations, respectively. hh;r;tiindicates a directional triple-wise relationship in
+the form of (head entity, relation, tail entity) called a fact in G. In this paper, we focus on schema-based KGs. entities in KGs
+have additional information such as types and text descriptions. Also, each relation has name and relation-speciﬁc type
+information which restricts the types of entities in head and tail positions.
+Most popular KGs, including Wikidata, DBpedia, and Freebase, are constructed based on the W3C Resource Description
+Framework (RDF)2for the Semantic Web. The data-representation framework allows expressing entity types ( rdf:type ). In
+addition, RDF Schema (RDFS)3provides a data-modelling vocabulary such as hierarchical entity types ( rdfs:subClassOf ),
+and relation-speciﬁc type constraints on head entities ( rdfs:domain ) and tail entities ( rdfs:range ). Since each entity plays
+different roles in different scenarios, entities in a schema-based KGs intuitively belong to multiple semantic categories through
+hierarchical entity types.
+Fig. 1 illustrates an example fact hHarvard _University ,State ,Massachusetts i. Harvard university has multiple
+entity types such as { University ,EducationalInstitution ,Agent ,Organisation }. Likewise, massachusetts has
+entity types { Place ,AdministrativeRegion ,PopulatedPlace ,Location ,Region }. Thus, facts containing the relation
+State are only valid when the type of a tail entity is PopulatedPlace due to the rdfs:range constraints. Note that the
+type Thing ofrdfs:domain indicates that there are no type constraints on head entities.
+2https://www.w3.org/TR/rdf11-concepts/ .
+3https://www.w3.org/TR/rdf-schema/ .B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+471
+
+4. Problem formulation
+In this section, We ﬁrst formally deﬁne a typical closed-world KGC problem for a ﬁxed set of in-KG entities and relations.
+Each of the entities and relations is assigned a unique embedding vector which is learnable. The closed-world KGC problem is
+as follows:
+Deﬁnition 1. Given an incomplete knowledge graph G,closed-world knowledge Graph Completion aims to score test facts
+F¼fh h;r;tijhh;r;tiRG;h2E;r2R;t2Egto predict their plausibility, where EandRdenote entity and relation ﬁxed sets
+which contain in-KG entities and relations, respectively.
+An open-world KGC problem is extended from the conventional closed-world KGC problem, where out-of-KG entities are
+represented with their textual descriptions. Entity embeddings are generated using pre-trained word embeddings. Espe-
+cially, the open-world KGC in our approach targets not only out-of-KG entities but also out-of-KG relations. The key idea
+behind the end-to-end inductive KGE (IKGE) model is how to generate the low-dimensional vector embedding of a target
+fact from word-level shared side information, which contains out-of-KG entity and relation as follows:
+Deﬁnition 2. Given an incomplete knowledge graph G,Open-World Knowledge Graph Completion aims to score test facts
+F¼fh h;r;tijhh;r;tiRG;ðh2E;r2R/C3;t2E/C3Þ[ðh2E/C3;r2R/C3;t2EÞ[ðh2E/C3;r2R;t2E/C3Þgto predict their plausibility,
+whereE/C3andR/C3denote entity and relation supersets which additionally contain out-of-KG entities and relations,
+respectively.
+Moreover, we incorporate graph-structured information into fact embeddings via aggregating fact feature information
+from multi-hop neighbors.
+5. The IKGE model
+As shown in Fig. 2 , in the training phase, (a) given a sample KG, (b) we ﬁrst extract fact feature information for every fact
+from word-level side information and construct a line graph where a node and an edge are a fact and a pair of adjacent edges,
+respectively. (c) After applying an attention-based GCN, a fact feature extractor for fact feature information extraction, aggre-
+Fig. 2. The overall framework of the proposed IKGE model. In the training phase, a fact feature extractor for fact feature information extraction, aggregato r
+functions for attentive feature aggregation, and FC layers for scoring facts, are trained. In the inference phase, the target fact’s embedding ztaris inductively
+generated by hierarchically accumulating extracted feature information ftarof a target fact ftarand multi-hop neighboring fact feature information until
+depth k¼3. Finally, we can score the target fact with FC layers to decide its plausibility score.B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+472
+
+Fig. 3. Illustration of fact feature information extraction. For a fact f, the feature vectors ehandetfor head and tail entities are extracted from their textual
+descriptions with attention on relation name, type constraints, and the other entity name. Then, the fact feature information f¼/ðfÞis generated by
+concatenating ehandet, and by type matching.B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+473
+
+gator functions for attentive feature aggregation, and fully-connected (FC) layers for scoring facts, are trained via supervised
+learning. In the inference phase, (d) given a target fact ftarwhere rand tare out-of-KG, (e) we extract the feature information
+ftarof the target fact with the trained fact feature extractor. Then, (f) the multi-hop neighboring fact feature information is
+hierarchically accumulated with the trained aggregator functions. Finally, we can score the generated target fact’s embed-
+ding ztarwith the FC layers to determine the plausibility of the target fact ftar. The proposed model IKGE for open-world
+KGC includes two major processes where we assume that its parameters have already been trained as follows:
+/C15Fact Feature Information Extraction. For relation rand entity e, we denote relation-related (type constraints Tr;dfor
+domain and Tr;rfor range, and relation name Ur) and entity-related (description De, types Te, and name Ue) word-level
+shared side information. For the h-rpair in a facthh;r;ti, words in Dhare attended by Ur;Ut, and Tr;rwith two-way atten-
+tion mechanism. This process is the same for the t-rpair. In addition, we check the validities of the h-rand t-rpairs via
+type matching with entity types and type constraints. In summary, given a fact fwith the side information, we extract fact
+feature information fby a fact feature extractor /ð/C1Þconsisting of attention-based sentence modeling and type matching
+(see Fig. 3 ).
+/C15Attentive Feature Aggregation. After a fact-to-node (line graph) transformation, we apply an attention-based graph con-
+volution network to recursively aggregate neighboring facts’ feature information. For all fact fin a KG, we refer to a set of
+neighboring facts immediately connected with fas the neighborhood Nf. We accumulate the facts’ feature information
+fi¼/ðfiÞ;8fi2Nf, into a single vector hNfby an attentive feature aggregator function which is formulated based on
+attention mechanism. Then, the aggregated neighborhood vector hNfis combined with the fact feature information f
+of the fact f. The combined vector~fis used as fact feature information for fat the next aggregator function. As shown
+inFig. 2 (c), the attentive feature aggregation process is iteratively performed from search depth 1 to k. At ﬁnal depth
+k, a score function wð/C1Þbased on fully-connected layers assesses the fact f.
+5.1. Fact feature information extraction
+Given a fact consisting of head/tail entities and a relation, we rely on entity descriptions as side information to extract
+relation-speciﬁc head and tail entities’ features. Then, we generate fact feature information from the entity features. To
+enhance the usefulness of the features, we further exploit the other entity name as well as relation-related information
+for attention. Especially, relation-speciﬁc type constraints are used to reduce the plausibility scope for test facts. As shown
+inFig. 3 , there are three main modules: word encoding, attention-based convolution, and type matching.
+Most KGs are schema-based knowledge bases, where each entity (i.e., node) is represented by a globally unique identiﬁer
+and appears only once. Similarly, relations also have unique identiﬁers, but they are much fewer than the entities and each of
+them appears multiple times as an edge in a KG. Since each relation is correlated with a very large number of head and tail
+entities, modeling relations is much more difﬁcult than entities. For the reason, recent open-world KGC models focus on gen-
+eralizing to out-of-KG entities, not out-of-KG relations. They entirely rely on entity descriptions to specify entities and gen-
+erate entity embeddings from pre-trained word embeddings.
+On the other hand, we not only utilize entity features extracted from descriptions but also obtain more informative fea-
+tures by attending to side information, i.e., relation name, relation-speciﬁc type constraints, and the other entity’s name in a
+fact. Moreover, after the fact feature information extraction process, we aggregate the feature information of multi-hop
+neighboring facts to generate the ﬁnal fact embedding of a target fact in an inductive manner. The attentive feature aggre-
+gation process can involve neighborhood graph-structured information in the ﬁnal fact embedding.
+5.1.1. Word encoding
+As shown in Fig. 3 , we utilize relation names, type constraints (i.e., rdf:domain andrdf:range ), and entity names and
+types to model the correlation among a relation rand entities hand t. The relation and entity names are encoded on the level
+of words which are shared by the same vocabulary. Since the raw relation and entity names are a set of words and rarely
+exist in the vocabulary, we parse them into word sets which are shared with entity description words. Thus, the correlation
+between a relation and two entities in a fact can be captured from their names, types, and descriptions. The word-level mod-
+eling from shared information allows handling out-of-KG relation and entity by extracting fact feature information from the
+word-level shared side information. To do so, the relation and entity names are ﬁrst split into words. Then, we perform
+lemmatization to extract the basic forms of the words, which exist in a dictionary.
+Given a facthh;r;ti, each of the entities hand tas an entity ehas a description De¼fw1;w2;...;wng, types
+Te¼fw1;w2;...;wmg, and a name Ue¼fw1;w2;...;wpg, which indicate the sets of symbolic word representations. Likewise,
+the relation rhas name Ur¼fw1;w2;...;wkg, domain type constraint Tr;d¼fwdg, and range type constraint Tr;r¼fwrg. All
+the above words are represented by symbolic representations and shared through a same vocabulary wi2W. We ﬁrst
+encode each word wiinto d-dimensional vector representation wiin an embedding matrix Wvoca2Rd/C2jWjfor words, where
+jWjis the size of the word vocabulary. The word embedding matrix Wvocacan be initialized with pre-trained word vectors,
+such as GloVe,4word2vec,5and fastText6vectors.B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+474
+
+5.1.2. Attention-based convolution
+Recently, attention mechanisms [34,35] are commonly used in sentence modeling for neural machine translation [36],
+where an encoder ﬁrst maps word vectors of an input sentence into a ﬁxed-length sentence vector via recurrent neural net-
+works (RNNs). Then, another RNN units decode the sentence vector into a word sequence. As other important attention mod-
+els, two-way attention models [37,38] are widely studied for pair-wise ranking or classiﬁcation such as question answering
+and interaction modeling. Inspired by the interaction modeling of the two-way attention, we mask entity description Dewith
+relation name Ur, relation-speciﬁc type constraint Tr, and the other entity name Ue0by capturing their semantic textual sim-
+ilarity. In general, RNNs such as long short-term memory networks (LSTMs) [39] are employed for a word-to-word modeling
+to encode the whole context within the sentence, whereas convolutional neural networks (CNNs) focus on the local context to
+model the sentence [40]. Since we need to capture the local context features within entity descriptions rather than the whole
+context features, we employ the attention strategy with a CNN. Thus, the convolution operations generate more abstract fea-
+tures of higher granularity from the description.
+As shown in Fig. 3 , the attention-based convolution module models the entity description Dhfor the head entity h. Firstly,
+the words in Dhare encoded into the entity description matrix Dh2Rd/C2nvia embedding lookup. In the same way, the rep-
+resentations wr2Rd/C21andUr2Rd/C2kare respectively generated for the range type constraint Tr;rand relation name Ur. The
+tail entity’s name Utis also encoded into Ut2Rd/C2p. Then, we set D0hto be the output of two 1D convolutions over the
+description matrix Dh. Following [37], attention weights are computed on the convolution output D0haccording to the range
+type constraint Tr;r, relation name Ur, and tail entity’s name Ut. To obtain the attention weights, we compute an attention
+score matrix Awhich compares all columns of D0hwith all columns of wr;Ur, and Utas follows:
+A¼tanhððD0hÞTWacatðwr;Ur;UtÞÞ; ð1Þ
+where A2Rn/C2ð1þkþpÞandWa2Rd/C2ddenote the attention score matrix and a weight matrix, respectively. catð/C1;/C1;/C1Þindicates a
+function for horizontally concatenating three inputs so that wr;Ur, and Utare concatenated. Then, we apply a column-wise
+max pooling over Aas follows:
+A0i¼max
+1<j<1þkþpAi;j ð2Þ
+Finally, the entity feature vector eh2Rdis computed by a matrix multiplication (i.e., weighted average) between D0hand
+softmaxðAÞas follows:
+eh¼D0hsoftmaxðA0Þ: ð3Þ
+The attention-based convolution process is performed once more for the tail entity’s description to produce the entity
+feature vector et. The two resulting feature vectors eh2Rdand et2Rdare concatenated and projected onto a vector
+f2Rdto produce fact feature information of fas follows:
+f¼Wp½eh
+et/C138þbp; ð4Þ
+where Wp2Rd/C22dandbp2Rdare weight matrices.
+Note that the weight matrices Wvoca;Wc1;Wc2;Wa;Wp;bpare shared in generating both ehandet, where Wc1andWc2are
+the kernels of the two convolutions.
+5.1.3. Type matching
+In addition, we also consider the entity and relation type information to determine the fact validity before the attentive
+feature aggregation. Fig. 3 illustrates the type matching for the h-rpair. Let entity types Thfor the entity hand domain type
+constraint Tr;d¼fwdgbe given. The entity types Thhave to contain the type constraint wd.
+To allow our model to be fully differentiable, we design the type matching process based on a matrix multiplication and a
+summation. Thus, model parameters can be trained in end-to-end learning with gradient descent. To exploit the type infor-
+mation, we ﬁrst mask the domain type constraint Tr;dand range type constraint Tr;ras one-hot type vectors tr;d;tr;r2RjWj,
+respectively, where jWjis the total number of types. Likewise, the head entity types Thand tail entity types Ttare masked
+as multi-hot type vectors th;tt2RjWj, respectively. Then, we perform element-wise multiplications of the type vectors and a
+summation of all elements. Since the type matching for the h-rand t-rpairs has to be satisﬁed at the same time, we multiply
+the result values for the h-rand t-rpairs as follows:
+f /C0f/C2ðXjWj
+iðth/C3tr;dÞi/C2XjWj
+iðtt/C3tr;rÞiÞ; ð5Þ
+4https://nlp.stanford.edu/projects/glove/ .
+5https://code.google.com/archive/p/word2vec/ .
+6https://fasttext.cc/docs/en/support.html .B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+475
+
+where/C3denotes the element-wise multiplication. tr;dandtr;rdenote the masked one-hot type vectors for domain and range
+type constraints, respectively. Also, thandttdenote the masked multi-hot type vectors for head and tail entities, respectively.
+If the type constraint is satisﬁed, the result values for the h-rpair and t-rpair validities will be 1, otherwise 0. Thus, the fact
+feature information fbecomes a zero vector and disappears if the type constraint is not satisﬁed.
+5.2. Attentive feature aggregation
+In order to evaluate the validity of a target fact ftar¼hh;r;tiwhich contains out-of-KG entity and relation, we need to
+generate a ﬁnal fact embedding ztarof the fact ftar, while containing key structural information of its multi-hop neighbors.
+In this section, the attentive feature aggregation process aims to compute ztarby hierarchically aggregating fact vectors
+within multi-hop neighbors of ftar. Inspired by the idea of GraphSAGE [19], we employ the hierarchical aggregator functions
+to aggregate the multi-hop neighborhood feature information obtained from Section 5.1.
+Moreover, we leverage attention mechanism [41–44] on graph-structured data (i.e., knowledge graphs) to focus on
+important neighbors’ fact vectors. After the attentive feature aggregation, we can generate the ﬁnal fact embedding ztar
+and evaluate it based on a simple scoring function to decide its plausibility. This process ensures that ztarcan preserve
+the graph-structured information from the multi-hop neighborhoods so that we address the aforementioned challenge C2.
+We set the search depth from the target fact as k2f1;...;Kg, where Kdenotes the maximum depth for aggregating fea-
+tures of the target fact’s k-hop neighborhoods. For each search depth k, we build an attentive feature aggregator function
+denoted by AGGREGATE k, which accumulates exactly 1-hop neighbors’ fact features and then passes the aggregated neigh-
+borhood features to the next aggregator function AGGREGATE kþ1at depth kþ1. Thus, as the search depth is deeper, the target
+fact gains more and more neighborhood features while containing graph structural information.
+5.2.1. Aggregator function
+To generate a ﬁnal fact embedding of a target fact, IKGE hierarchically accumulates fact feature information of multi-hop
+neighbors along with the aggregation paths. The fact vectors are initialized by the initial fact feature extraction process. Each
+aggregation path connects from leaf entity to root entity. All aggregation paths constitute a form of a tree as shown in Fig. 2
+(c). For a k-hop fact fuat depth k, the aggregator function AGGREGATE kþ1takes neighboring fact vectors
+NðfuÞ¼f fv;8fv2NðfuÞgas follows:
+hkþ1
+NðfuÞ¼AGGREGATE kþ1ðNðfuÞÞ; ð6Þ
+whereNðfuÞdenotes the variable-sized neighboring fact set of fu.fvdenotes one neighbor of fu.hkþ1
+NðfuÞis the aggregated
+neighborhood vector.
+In the attentive feature aggregator function, we entirely rely on attention mechanism to focus on more important fact
+vectors in combining the neighborhood NðfuÞoffu. In general, the important information of entities can be obtained via
+the Weisfeiler-Lehman algorithm [45] or centrality measures such as PageRank, degree centrality, and betweenness central-
+ity, but we do not need the relative importance in aggregating graph-structured information from neighborhoods. Instead of
+the order information, we utilize content-based attention mechanism in the attentive feature aggregator function to obtain
+the learnable importance of fact vectors. Thus, we do not need to sample the neighboring facts NðfuÞto select relatively
+more important ones or prune relatively unnecessary ones. This makes the attentive feature aggregation of IKGE combine
+the variable-sized neighbors into the single ﬁxed-length vector hkþ1
+NðfuÞ.
+In our attention strategy, fact vectors NðfuÞand their parent fact vector fuare utilized to compute an attention weight av
+which indicates the relevance between each fact in NðfuÞand fuas follows:
+av¼softmax vðATSCOREðNðfuÞ;fuÞÞ
+¼expðatt score vðNðfuÞ;fuÞÞ X
+i2NðfuÞexpðatt scoreiðNðfuÞ;fuÞÞ; ð7Þ
+where the attention weight avdenotes the importance of the vth neighboring fact in combining the neighborhood NðfuÞ
+while considering the parent fact fu. Attention weights are obtained from the attention scores for NðfuÞvia the softmax
+function which ensures that the sum of fav;8fv2NðfuÞgis 1. Here, we can obtain each attention score for a fact vector
+fv;8fv2NðfuÞ, conditioned on its parent fact fuas follows:
+ATSCORE vðfv;fuÞ¼fvWkþ1
+afu; ð8Þ
+where Wkþ1
+adenotes the parameter of the attentive feature aggregator function at depth kþ1. There are Ksets of the param-
+eter depending on the maximum search depth K. Each parameter set is shared for the aggregator function at the same depth.
+As a result, the fact vectors ffv;8fv2NðfuÞgare combined with the attention weight vector by a weighted sum as follows:B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+476
+
+hkþ1
+NðfuÞ¼AGGREGATE kþ1ðNðfuÞÞ¼ tanhX
+fv2NðfuÞavfv0
+@1
+A; ð9Þ
+where hkþ1
+NðfuÞdenotes the aggregated neighborhood vector, which indicates contextual information of the parent fact fu. Then,
+the aggregated neighborhood vector hkþ1
+NðfuÞis simply combined with the initial fact embedding fuas follows:
+~fu¼hkþ1
+NðfuÞþfu; ð10Þ
+where~fudenotes a context-aware fact vector of fu. Along with a aggregation path,~fuis injected into the next aggregator
+function AGGREGATE kat search depth kas follows:
+fu /C0~fu: ð11Þ
+Note that the context-aware fact vector~fuis considered as the fact vector of futo be aggregated with other fact vectors at
+the aggregator function AGGREGATE k. This process is performed repeatedly for the search depth k2f1;...;Kg, where Kis the
+maximum depth, until the ﬁnal fact embedding~ftar(i.e., context-aware fact vector~ftar) of target fact ftaris generated.
+As shown in Fig. 2(d), after the ﬁnal attentive feature aggregator function AGGREGATE 1at search depth k¼1, the initial
+fact embedding ftaris combined with the aggregated neighborhood vector h1
+Ntarto generate the context-aware fact feature
+~ftarwhich indicates the ﬁnal embedding of the target fact. Finally, the score function wðzÞbased on two fully connected layers
+and a sigmoid function assesses all fact vectors in training KG to predict their plausibility scores as follows:
+wðzÞ¼sigmoidðWf2ReLUðWf1zþbf2Þþbf2Þ: ð12Þ
+5.2.2. Training
+To effectively train the model (i.e., aggregator functions AGGREGATE k, fact feature extractor /ð/C1Þ, and scoring function
+wð/C1Þ), we employ negative sampling which randomly corrupts head and tail entities of each positive fact. With the negative
+and positive facts, binary cross-entropy loss is utilized to evaluate correct facts higher than the corrupted facts as follows:
+L¼X
+ðh;r;t;yÞ2TylogðwðzÞÞþð 1/C0yÞlogð1/C0wðzÞÞ; ð13Þ
+where yis 1 for positive facts hh;r;ti, otherwise, yis 0 for negative ones.
+5.2.3. Inference
+Given a target fact ftar, the inference phase applies previously-learned aggregator functions AGGREGATE k, fact feature
+extractor /ð/C1Þ, and scoring function wð/C1Þto the target fact. Speciﬁcally, by using the fact feature extractor, fact feature infor-
+mation ftarofftaris extracted from its entity descriptions, type information, and names as described in Section 5.1. Note that
+the fact feature information of other facts in a training KG is already extracted at the training phase.
+After the attentive feature aggregator function AGGREGATE Kat ﬁnal search depth k¼K, the initial fact feature informa-
+tion f1
+tarhas fact feature information of every neighbor within K-hop. The ﬁnal representation output~fK
+tarat depth Kis
+denoted by ztar, which indicates the ﬁnal fact vector of the target fact. Finally, we evaluate the fact vector ztarwith the scoring
+function wðzÞwhich consists of two fully connected layers and a sigmoid function. The plausibility score represents whether
+ftaris valid or not. In open-world scenarios, a target fact includes out-of-KG entities and relation except for one entity (i.e. at
+least one entity in the target fact should be included). In a closed-world assumption, a target fact includes all in-KG entities
+and a relation.
+5.2.4. Complexity analysis
+We perfom the space and time complexity of the proposed IKGE model. First, there are learnable parameters
+fWc1;Wc2g2Rd/C2k/C2d;Wa2Rd/C2d;Wp2Rd/C22d;bp2Rdin the fact feature information extraction. Also,
+wk
+a2R2d;8k2f1;...;Kgfor aggregator functions in the attentive feature aggregation process. Thus, the space complexity
+is summarized as Oðkd2þKdÞ, where k;d, and Kdenote the width of convolution kernel, embedding size, and the number
+of aggregation layers, respectively.
+The time complexity of the fact feature information extraction may be expressed as OðjEjnkd2Þ, wherejEjis the number of
+edges (i.e., facts), nis the length of input description, and kis the width of the convolution kernel. Speciﬁcally, the time com-
+plexities of subprocess are Oð2jEjnkd2ÞforD0e;OðjEjnd2Þfor attention scores A;OðjEjndÞfor attention weights A0, and so on. In
+the attentive feature aggregation process, the overall time complexity is expected to be OðKðjVjd2þjEjdÞÞwhich is proven by
+[44], wherejVjdenotes the number of nodes and Kdenotes the number of aggregation layers.B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+477
+
+Most conventional KGC models for an open-world setting do not exploit neighborhood information. Although the com-
+plexity of the proposed model increases, we combine the fact feature information within K-hop neighbors, resulting in high
+prediction performance.
+6. Experiments
+6.1. Experimental setup
+The trainable parameters of fact feature information extraction and attentive feature aggregation, excluding pre-trained
+word embeddings, were tuned by the stochastic gradient descent with shufﬂed mini-batches and AdamW update rule with
+the initial learning rate of 0.01. In addition, a cosine annealing learning rate scheduler was adopted. AdamW is an adaptive
+gradient-based optimizer to adaptively adjust the learning rate for each parameter. It resolves the problem of Adagrad where
+the learning rate radically decreases or increases. All experiments were implemented in Python using the open-source
+library PyTorch which provides GPU-accelerated deep learning tools on Intel Core i7-10700 CPU and NVIDIA GeForce GTX
+3080 GPU.
+6.1.1. Real-world datasets
+To evaluate the KGC task including link (entity and relation) prediction and triple classiﬁcation sub-tasks, there are com-
+monly used real-world KG datasets under the closed-world assumption: FB15k [26] and FB13 [46] which are constructed
+from Freebase [5]. To simulate open-world KGC scenarios, FB20k [15] and DBPedia50k/DBPedia500k [14] are proposed,
+which contain test facts with out-of-KG entities. FB20k is built upon FB15k by adding new entities with entity descriptions.
+DBPedia50k/DBPedia500k are constructed from DBPedia, where randomly sampled entities and triples are used for training
+triples, and the remaining triples are used for test triples.
+In a transductive setup, all entities and relations in test sets must be in-KG like the existing KG datasets. On the other
+hand, since IKGE supports out-of-KG entities and relations, test sets for an inductive setup contain at least one out-of-KG
+entity or relation. To do this, we randomly selected out-of-KG relations based on uniform sampling over all in-KG relations.
+As a result, the test set is split into 8 fact types: O-O-O, O-O-X, O-X-O, X-O-O, O-X-X, X-X-O, X-O-X, and X-X-X, where O and X
+indicate in-KG and out-of-KG, respectively. Note that, since we assume that a test fact involves at least one in-KG entity, wedo not focus on the X-X-X type. Table 1 illustrates the statistics of ﬁve real-world datasets used in our experiments.
+Although the datasets contain substantial facts with long textual descriptions, the proposed model IKGE requires some
+side information to support open-world KGC, such as relation-related (names and type constraints) and entity-related (de-
+scriptions and types) side information. We newly augmented FB20k, DBPedia50k, and DBPedia500k as FB20k+, DBPedia50k+,
+and DBPedia500k+ for both inductive and transductive setups.
+6.1.2. Baselines
+State-of-the-art KGC methods in an open-world setting generally leverage pre-trained word embeddings from textual
+descriptions to capture correlations among head entity, relation, and tail entity. Embeddings of head and tail entities are gen-
+erated from their textual descriptions. Thus, these models evaluate the validity of a given triple involving in-KG as well as
+out-of-KG entities. The open-world KGC methods compared with IKGE are as follows:
+/C15Target Filtering Baseline: is introduced by [14] to compare with ConMask. The approach only evaluates test facts h?;r;t0i
+andht0;r;?iwhere target entity candidate t0has been connected with relation rin the training set, otherwise the test facts
+are ﬁltered.
+Table 1
+Statistics of ﬁve real-world datasets.
+Dataset
+FB15k FB20k+ FB13 DBPedia50k+ DBPedia500k+
+#Entites In-KG 14,904 14,904 75,043 49,900 517,475
+Out-of-KG – 5,019 – 5,699 49,882
+#Relations In-KG 1,341 1,341 13 654 654
+Out-of-KG – 200 – 96 96
+#Train 472,860 472,860 316,232 32,388 3,102,677#Valid 48,991 48,991 5,908 399 10,000#Test O-O-O 57,803 51,280 23,733 2,001 296,225
+O-O-X – 9,543 – 4,238 286,763X-O-O – 15,995 – 2,862 373,368O-X-O – 6,523 – 321 52,274
+O-X-X – 2,043 – 814 50,605
+X-X-O – 2,758 – 473 65,888B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+478
+
+/C15Semantic Averaging: is introduced by [14] to compare with ConMask. The approach is a simple version of ConMask,
+which only uses a part of feature extraction modules.
+/C15DKRL (2-layer CNN) [15]:proposes two versions of description-based entity embedding generators, a 2-layer CNN enco-
+der and a CBOW encoder. Among them, we adopt the 2-layer CNN encoder which shows better performance.
+/C15ConMask [14]:further employs a multi-layer CNN with relation-dependent attention to extract entity features from
+descriptions. Moreover, the extracted entity features are combined with features simply extracted from a relation name.
+/C15Cmplx-OWE-300 [47]:ﬁrst learns KGC embeddings with existing transductive KGC models under the closed-world
+assumption. Then, they learn a transformation function which transforms from description-based entity embeddings
+(300 dimensions) to KGC-based entity embeddings. Thus, KGC-purposed entity embeddings can be generated from entity
+descriptions and the learned transformation function.
+6.1.3. Hyperparameters
+For both inductive and transductive setups, we decided hyperparameters with a grid search on validation datasets. We
+used two convolution layers, ﬁlter width of 3, dropout rate of 0.25, and L2 constraint of 0.001 in the relation-speciﬁc feature
+extraction. In the attentive feature aggregation, we considered the 2-hop neighboring facts (i.e., maximum search depth
+K¼3) for FB15k/FB13 and 3-hop neighboring facts for DBPedia50k+/DBPedia500k+. Fully connected layers for scoring the
+target fact’s vector consists of 2 layers with 512, 256 dimensions. All words in the vocabulary Wwere initialized with
+the pre-trained 300-dimensional Wikipedia2Vec embeddings trained by [48]. We did not train the word embeddings. For
+words not included in the pre-trained vectors, we initialized them with Kaiming initialization using a uniform distribution,
+which is also known as He initialization.
+6.1.4. Performance measures
+In entity and relation predictions, test facts’ plausibility scores are computed under closed-world and open-world
+assumptions. Conventional closed-world KGC models (e.g., TransE, TransR) do not generate entity and relation embeddings
+from side information, so they cannot handle out-of-KG entities. All open-world KGC models (e.g., IKGE, DKRL, ConMask, and
+Cmplx-OWE-300) obviously perform closed-world entity prediction with test facts of the O-O-O pattern. In the open-world
+setting, head entity prediction evaluates test facts of the O-O-X pattern, and tail entity prediction evaluates test facts of the
+X-O-O pattern. In other words, for each test fact (X-O-? or?-O-X) involving an open-world entity (X) and a target entity (?),
+open-world KGC models rank all known target entities by scoring the test facts. Since all the conventional open-world KGC
+models do not support out-of-KG relations, they limitedly evaluate O-O-X and X-O-O patterns. Note that, although the orig-
+inal datasets (DBPedia50k and DBPedia500k) include all the eight patterns, they only utilize O-O-X and X-O-O patterns for
+open-world scenarios and an O-O-O pattern for closed-world scenarios. On the other hand, the proposed IKGE can score test
+facts involving out-of-KG relations. Therefore, IKGE can perform extended entity prediction, head entity prediction for the O-
+O-X, O-X-X, and O-X-O patterns, and tail entity prediction for the X-O-O, X-X-O, and O-X-O patterns. Furthermore, IKGE is
+able to perform relation prediction for the O-O-X, X-O-O, and X-O-X patterns by ranking all in-KG relations r2Rfor each
+test facthh;r;ti. Then, the target entities and relations’ ranks are evaluated with the commonly used evaluation metrics:
+mean rank (MR), mean reciprocal rank (MRR), and HITS@k (as H@k in %). MR and MRR measure the average of the correct
+entities/relations’ ranks and the correct entities/relations’ reciprocal rank values, respectively. HITS@k is the average propor-
+tion of valid entities whose prediction score ranks are lower than k (10 for entity prediction or 1 for relation prediction).
+Lower MR, higher MRR and HITS@k indicate better performance. Following the previous open-world KGC approaches, the”Filtered” evaluation setting ﬁrstly reported in [26] was adopted, not ”Raw”. The ”Filtered” setting ignores any explicit facts
+in KG datasets before predicting rank scores.
+6.2. Experimental results
+In this section, experimental results are reported on two main tasks based on the plausibility scores of facts, entity and
+relation prediction (i.e., link prediction) in Tables 2–4 , and triple classiﬁcation in Table 5 . Furthermore, to study the relative
+importance of IKGE components, variant versions of IKGE from the point of ablation studies are further evaluated in the same
+experimental setup. For open-world KGC, IKGE without attention-based convolution (called IKGE
+NoATT), IKGE without type
+matching (called IKGE NoTM), and IKGE without attentive feature aggregation (called IKGE NoAFA) are evaluated as shown in
+Section 6.2.1 and Section 6.2.2 . For closed-world KGC, IKGE without fact feature information extraction (called IKGE NoFFIE)
+is evaluated as shown in Section 6.2.3 and Section 6.2.4 . Instead of referring directly to other models’ experimental results,
+comparative evaluations are conducted with their released implementations for open-world KGC models. The experimental
+results include extended experiments for more fact patterns than previous models. The OpenKE framework7is used for most
+closed-world KGC models, which collects well-known KGC models under the closed-world assumption. For KGC models not in
+the OpenKE framework, all the models are evaluated with the same experimental setup stated in their papers. As described inSection 6.1.2 , Cmplx-OWE-300 ﬁrst obtains KGC-based embeddings in preprocessing and then trains a transformation function.
+Thus, the training time of Cmplx-OWE-300 is longer than other models, except for the proposed IKGE. On the other hand, once
+7OpenKE framework: https://github.com/thunlp/OpenKE .B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+479
+
+the training is completed, the inference times of Cmplex-OWE-300 and DKRL are similar and fastest among other models. The
+reason is that they simply score test facts via a translation-based scoring function in TransE. The proposed IKGE took the longest
+training and inference time than all other models. Since IKGE and ConMask have similar processing leveraging pre-trained wordTable 2
+Head entity prediction on FB20k+, DBPedia50k+, and DBPedia500k+ in an open-world setting (O-O-X, O-X-X, and O-X-O patterns). Best results are in bol dface.
+FB20K+ DBPedia50k+ DBPedia500k+
+MR H@10 MRR MR H@10 MRR MR H@10 MRR
+Target Filtering Baseline 2243 0.05 0.08 605 0.07 0.07 20667 0.01 0.01
+Semantic Averaging 1967 0.07 0.13 513 0.10 0.11 10245 0.04 0.09DKRL (2-layer CNN) 1790 0.16 0.20 490 0.14 0.16 13776 0.07 0.13ConMask 698 0.28 0.32 213 0.29 0.32 5983 0.14 0.30
+Cmplx-OWE-300 592 0.25 0.35 206 0.35 0.31 4843 0.19 0.29
+IKGE
+NoATT 1223 0.19 0.25 268 0.22 0.20 7421 0.11 0.18
+IKGE NoTM 583 0.28 0.34 198 0.33 0.32 4857 0.21 0.33
+IKGE NoAFA 654 0.26 0.32 324 0.28 0.27 6877 0.18 0.30
+IKGE 545 0.30 0.39 185 0.38 0.34 3978 0.23 0.35
+Table 3
+Tail entity prediction on FB20k+, DBPedia50k+, and DBPedia500k+ in an open-world setting (X-O-O, X-X-O, and O-X-O patterns). Best results are in bol dface.
+FB20K+ DBPedia50k+ DBPedia500k+
+MR H@10 MRR MR H@10 MRR MR H@10 MRR
+Target Filtering Baseline 2848 0.04 0.05 121 0.23 0.11 3494 0.02 0.01
+Semantic Averaging 2538 0.06 0.07 105 0.26 0.15 1539 0.16 0.12DKRL (2-layer CNN) 1235 0.13 0.19 82 0.38 0.22 2732 0.08 0.09ConMask 548 0.24 0.28 43 0.58 0.52 683 0.32 0.36
+Cmplx-OWE-300 484 0.23 0.42 39 0.60 0.49 797 0.36 0.37
+IKGE
+NoATT 892 0.17 0.21 62 0.39 0.31 1249 0.21 0.19
+IKGE NoTM 422 0.25 0.32 38 0.75 0.56 538 0.41 0.35
+IKGE NoAFA 621 0.20 0.27 44 0.61 0.52 653 0.35 0.34
+IKGE 407 0.30 0.40 31 0.78 0.61 463 0.43 0.36
+Table 4
+Head and Tail Entity prediction on FB20k+, DBPedia50k+, and DBPedia500k+ in an open-world setting (X-O-O and O-O-X patterns). Best results are in bol dface.
+FB20K+ DBPedia50k+ DBPedia500k+
+MR H@10 MRR MR H@10 MRR MR H@10 MRR
+Target Filtering Baseline 2345 0.05 0.06 333 0.16 0.10 10423 0.02 0.02
+Semantic Averaging 2122 0.08 0.12 271 0.19 0.15 5515 0.10 0.11DKRL (2-layer CNN) 1412 0.18 0.22 260 0.27 0.21 8013 0.08 0.12ConMask 601 0.30 0.31 104 0.44 0.44 3161 0.24 0.33
+Cmplx-OWE-300 532 0.31 0.42 119 0.49 0.42 2672 0.28 0.35
+IKGE
+NoATT 1018 0.19 0.24 145 0.32 0.27 4051 0.19 0.19
+IKGE NoTM 493 0.27 0.33 113 0.52 0.45 2396 0.33 0.34
+IKGE NoAFA 614 0.24 0.31 167 0.45 0.41 3511 0.28 0.32
+IKGE 463 0.34 0.42 104 0.54 0.52 2136 0.38 0.37
+Table 5
+Relation prediction on FB20k+, DBPedia50k+, and DBPedia500k+ in an open-world setting (O-O-X, X-O-O, and X-O-X patterns). Best results are in boldf ace.
+FB20K+ DBPedia50k+ DBPedia500k+
+MR H@1 MRR MR H@1 MRR MR H@1 MRR
+Semantic Averaging 421 0.07 0.09 213 0.04 0.11 285 0.03 0.07
+DKRL (2-layer CNN) 262 0.15 0.16 130 0.09 0.12 153 0.11 0.10ConMask 142 0.23 0.31 95 0.29 0.25 103 0.23 0.28Cmplx-OWE-300 159 0.24 0.29 94 0.27 0.27 114 0.25 0.30
+IKGE
+NoATT 242 0.19 0.21 125 0.14 0.20 131 0.14 0.22
+IKGE NoTM 136 0.27 0.34 88 0.31 0.30 92 0.23 0.33
+IKGE NoAFA 146 0.25 0.33 91 0.29 0.28 98 0.22 0.32
+IKGE 135 0.29 0.36 85 0.32 0.31 83 0.24 0.34B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+480
+
+embeddings from descriptions, the time for fact feature information in IKGE and the time for the whole scoring process in Con-
+Mask are similar. However, IKGE additionally employs an attentive feature aggregation module which takes into account the
+entire KG structure. This makes training and inference times take a long time.
+6.2.1. Open-world entity prediction
+To evaluate open-world entity prediction, all open-world KGC methods predict head entities for the O-O-X, O-X-X, and O-
+X-O patterns and tail entities for the X-O-O, X-X-O, and O-X-O patterns, including out-of-KG entities and relations. Following
+ConMask [14,47] , target ﬁltering is adopted for all open-world KGC methods, which evaluates only the candidate entities
+whose relation-entity combinations exist in the training KG. It reduces the computation complexity and helps to evaluate
+only reasonable facts. ConMask, Cmplx-OWE-300, and DKRL assumed that descriptions and names of all in-KG and out-
+of-KG entities are given. In the same manner, we utilize the entity descriptions and names as well as relation-related side
+information for fact feature information extraction and neighborhood information for attentive feature aggregation. Since
+IKGE can identify the facts with out-of-KG relations by using the abundant relation-related side information, it is able to han-
+dle the out-of-KG relations regarding head/tail entity prediction for O-X-X, O-X-O, and X-X-O patterns.
+The state-of-the-art open-world KGC approaches (ConMask, DKRL, and Cmplx-OWE-300) do not consider out-of-KG rela-
+tions. To support the out-of-KG relations regarding head/tail entity prediction for O-X-X, O-X-O, and X-X-O patterns, we dif-
+ferently handled the out-of-KG relations for each KGC approach except for ConMask and Semantic Averaging. For Semantic
+Averaging and ConMask, their original versions were used. The original versions simply average pre-trained word embed-
+dings from relation names to identify the validity among the head entity, relation, and tail entity. Note that, although they
+can score facts involving out-of-KG relations, they did not conduct and report the head/tail entity prediction for O-X-X, O-X-
+O, and X-X-O patterns. Inspired by them, for DKRL and Cmplx-OWE-300, pre-trained word embeddings from relation names
+are averaged to obtain relation embeddings ﬁrstly. Uniquely assigned relation embeddings in DKRL (original version) are
+replaced with the word-embedding-based relation embeddings. The original version of Cmplx-OWE-300 learns a transfor-
+mation function from KGC-based pre-trained entity embeddings to word-embedding-based entity embeddings. We further
+employed a trainable relation-speciﬁc transformation function, which transforms KGC-based pre-trained relation embed-
+dings to word-embedding-based relation embeddings (from relation names). For Target Filtering Baseline, the same process
+in ConMask is applied, which assigns random scores to test facts that pass the target ﬁltering. Thus, IKGE can be compared
+with state-of-the-art approaches in an open-world setting with out-of-KG relations.
+Link prediction performance for head and tail entities is presented in Table 2 andTable 3 , respectively. Among the Target
+Filtering Baseline [14], Semantic Averaging [14], DKRL [15], ConMask [14], and Cmplx-OWE-300 [47] approaches, the results
+of Target Filtering Baseline and Semantic Averaging were always worse than all other models. These models are the simpli-
+ﬁed models that randomly assign to test facts or combine pre-trained word embeddings from descriptions and names with
+averaging. In contrast, ConMask generates entity embeddings by attention-based context masking and CNN-based target
+fusion operation. Thus, Semantic Averaging cannot capture important word semantics among input sentences. Although
+DKRL, ConMask, and IKGE exploited entity descriptions to generate entity vectors, the result of DKRL is signiﬁcantly worst.
+The reason is that DKRL does not model the entity descriptions according to relation-related information. On the other hand,
+both ConMask and IKGE utilize relation names and entity descriptions. In addition, Table 4 shows the head and tail predic-
+tion performance for out-of-KG entities only (i.e., head and tail prediction for O-O-X and X-O-O patterns, respectively),
+whereas Table 2 and Table 3 target O-O-X, O-X-X, and O-X-O patterns and O-O-X, O-X-X, and O-X-O patterns, respectively.
+The overall performance in Table 4 , including out-of-KG relations, is higher than the average performance in Tables 2 and 3 .
+Since relation-related information is insufﬁcient compared to entities, entity prediction on out-of-KG relations is more com-
+plicated than out-of-KG entities.
+Among IKGE NoATT;IKGE NoTM, and IKGE NoAFA;IKGE NoATTshows the lowest performance. This means that the attention-
+based convolution module is more important than the other modules, because the module extracts initial fact features from
+entity descriptions attended by relation-related side information. Similar to DKRL, ConMask, and Cmplx-OWE-300, the
+extracted features from descriptions play a very important role to capture the correlation among head entity, relation,
+and tail entity. Note that the attention-based convolution module is different from the previous open-world KGC models,
+because the module performs entity/relation-related attention with relation-related side information. Thus, IKGE NoAFAper-
+forms better than the previous open-world KGC models. The impact of the type matching module is relatively lower than the
+impact of the attentive feature aggregation module. However, both modules are not important compared to the attention-
+based convolution module. IKGE NoTMoutperforms all other variants of IKGE and shows similar performance to IKGE. The
+type matching module provides some performance improvement, whereas the attentive feature aggregation module pro-
+vides a signiﬁcant performance improvement. In summary, the attention-based convolution module is the most important
+component in IKGE.
+6.2.2. Open-world relation prediction
+To evaluate open-world relation prediction, all open-world KGC methods predict relations for the O-O-X, X-O-O, and X-O-
+X patterns, including out-of-KG entities. The target ﬁltering was not applied (also Target Filtering Baselines) because the
+challenging X-O-X pattern has no relation-entity combination in the training set. As shown in Table 5 , we observe that IKGE
+shows the best performance for relation prediction across all three datasets by a substantial margin. Among previous open-
+world KGC models, ConMask shows better performance than Cmplx-OWE-300. Cmplx-OWE-300 mainly targets the trans-B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+481
+
+formation from description-based entity embeddings to KGC-based entity embeddings, leading to loss of relation-related
+semantic information to identify a given fact (head entity, relation, and tail entity). We also ﬁnd that IKGE signiﬁcantly out-
+performs IKGE NoAFAacross all datasets, especially FB20k+ having more neighborhood information. Since attentive feature
+aggregation accumulates information from neighboring facts, IKGE can more easily determine the validity of target facts
+than IKGE NoAFA. As like open-world entity prediction, the attention-based convolution and attentive feature aggregation
+modules are important components in IKGE by observing the results of IKGE NoATTand IKGE NoAFA.
+6.2.3. Closed-world entity prediction
+IKGE is also compared with other well-known closed-world KGC models targeting only in-KG entities and relations, as
+shown in Table 6 . To evaluate closed-world KGC, we ﬁrst assume that all test facts’ entities and relations have previously
+appeared in training. As shown in Section 6.1.1 , the pattern of the test facts is an O-O-O pattern, which only involves in-
+KG entities and relations. Since the closed-world entity prediction is less challenging than the open-world entity/relation
+prediction, the proposed IKGE (inductive version) can be directly compared against existing transductive KGC models under
+the closed-world assumption. Unlike the open-world setup, the closed-world KGC tasks are performed with entity prediction
+on the original datasets (i.e., FB15k, DBpedia50k, and DBpedia500k) similar to [14].
+Moreover, IKGE NoFFIEis introduced, a variant version of IKGE, which no longer employs a complex encoder to generate
+relation-speciﬁc representations of facts from pre-trained word embeddings with relation-related side information.
+IKGE NoFFIEcannot generalize the facts involving out-of-KG entities and relations. Instead, a simple encoder of IKGE NoFFIEﬁrst
+assigns a unique embedding to each entity and relation and then generates initial fact vectors with simple RNNs. The unique
+embeddings are optimized similarly to conventional closed-world KGC models. IKGE NoFFIEis a topology-based model which
+mainly incorporates the graph structure information into the aggregated features by utilizing multi-hop neighborhoods. In
+summary, IKGE inductively generates initial fact vectors from pre-trained word embeddings (via fact feature information
+extraction), whereas IKGE NoFFIEassigns randomly initialized vectors to entities and relations like the existing closed-
+world KGC models. We ﬁnd that description-based KGC models IKGE, DKRL, ConMask, and Cmplx-OWE-300 mostly outper-
+form closed-world methods for mean rank. These models especially show improvements on the DBPedia-derived datasets
+which are sparse graphs. The Transductive models TransE and TransR mainly rely on independent triples rather than neigh-
+boring facts, making it more difﬁcult to predict fact validity due to less interconnected facts. Although IKGE NoFFIEis also a
+transductive model, IKGE NoFFIEoutperforms by a small margin TransE and TransR. This demonstrates that further exploiting
+neighborhood information provides a performance improvement. The proposed IKGE shows better performance than all
+other models signiﬁcantly. We believe that this is due to neighborhood information accumulated with the attentive feature
+aggregation modules. .
+6.2.4. Closed-world triple classiﬁcation
+We further analyzed the triple classiﬁcation performance of the compared conventional KGC models under closed-world
+assumption, as shown in Table 7 . As described in [46], the goal of the triple classiﬁcation task is determining whether a given
+fact is correct or not (i.e., binary classiﬁcation). With a relation-speciﬁc threshold, test facts are classiﬁed into positive (1) or
+negative (0). The evaluation results are directly taken from [49]. From the results on FB13, the full version of IKGE outper-
+forms all other models. Unlike other models, IKGE, IKGE NoFFIEand TransE-NMM additionally utilize neighborhood informa-
+tion (i.e., neighboring facts) to determine the validity of a given fact. These models perform better in most cases than the
+other models by leveraging neighborhood information. As aforementioned, since IKGE NoFFIEaccumulates entity and relation
+embeddings in multi-hop neighborhood as contextual information via the attentive feature aggregation module in IKGE,
+IKGE NoFFIEcan preserve the graph structure for more informative fact embeddings. TransE-NMM [50] is also one of the
+state-of-the-art topology-based KGC models utilizing neighborhood information. However, they consider only 1-hop neigh-
+bors as local structural information and simply combine them. Therefore, TransE-NMM showed relatively low performance
+compared to IKGE NoFFIE. We also observed that IKGE NoFFIEshows higher classiﬁcation performance than other comparisons
+Table 6
+Head and Tail Entity prediction on FB15k, DBPedia50k, and DBPedia500k in a closed-world setting (O-O-O pattern). Best results are in boldface.
+FB15k DBPedia50k DBPedia500k
+Head Tail Head Tail Head Tail
+MR H@10 MR H@10 MR H@10 MR H@10 MR H@10 MR H@10
+TransE 189 0.68 92 0.75 2854 0.37 734 0.68 10034 0.15 2472 0.45
+TransR 186 0.71 87 0.77 2689 0.39 718 0.67 – – – –
+DKRL (2-layer CNN) 175 0.70 83 0.60 1867 0.40 262 0.65 2523 0.17 1845 0.19ConMask 116 0.62 80 0.62 1063 0.41 141 0.72 1512 0.21 1568 0.20
+Cmplx-OWE-300 121 0.64 81 0.61 1043 0.39 187 0.73 1745 0.22 1499 0.27IKGE
+NoFFIE 156 0.64 88 0.65 1743 0.38 538 0.69 5983 0.16 2195 0.24
+IKGE 113 0.70 81 0.75 971 0.42 135 0.74 1486 0.24 1479 0.33B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+482
+
+except for IKGE. This demonstrates the importance of the attentive feature aggregation module, rather than simply combin-
+ing neighborhood information in TransE-NMM. .
+7. Conclusions
+In this paper, we proposed an inductive knowledge graph embedding (IKGE) for the open-world KGC task based on atten-
+tively aggregating feature information from neighboring facts. IKGE generalizes to facts including out-of-KG entities and
+relations by inductively generating fact embeddings from entity descriptions. Since different words in entity descriptions
+usually have different informativeness for representing facts, the model attends to relation-related side information. Also,
+the model exploits relation-speciﬁc type constraints to conﬁne unseen relations in an end-to-end manner. Moreover, the
+proposed attentive feature aggregation hierarchically accumulates the features of multi-hop neighbors. Therefore, IKGE pre-
+serves global structure information, leading to more accurate KGC in open-world scenarios. Experimental results show thatIKGE outperforms existing approaches in both transductive and inductive setups by successfully aggregating neighborhood
+features.
+In the future, we will introduce generative models such as VAEs and GANs which leverage side information of entities and
+relations to adjust biases towards seen and unseen facts. We will discuss how to generate extra facts in the training phase by
+exploiting extensive external knowledge.
+CRediT authorship contribution statement
+Byungkook Oh: Conceptualization, Methodology, Software, Writing – original draft. Seungmin Seo: Software, Formal
+analysis. Jimin Hwang: Data curation, Investigation. Dongho Lee: Writing – review & editing. Kyong-Ho Lee: Supervision,
+Project administration.
+Declaration of Competing Interest
+The authors declare that they have no known competing ﬁnancial interests or personal relationships that could have
+appeared to inﬂuence the work reported in this paper.
+Acknowledgement
+This research was supported by the National Research Foundation of Korea (NRF) grant funded by the Korea government
+(MSIP; Ministry of Science, ICT & Future Planning) (No. NRF-2019R1A2B5B01070555).
+References
+[1]J. Lehmann, R. Isele, M. Jakob, A. Jentzsch, D. Kontokostas, P.N. Mendes, S. Hellmann, M. Morsey, P. Van Kleef, S. Auer, et al, DBpedia–a large-scale,
+multilingual knowledge base extracted from wikipedia, Semantic Web 6 (2) (2015) 167–195 .
+[2]F.M. Suchanek, G. Kasneci, G. Weikum, YAGO, a core of semantic knowledge, in: Proceedings of the 16th international conference on World Wide Web,
+2007, pp. 697–706 .
+[3] A. Carlson, J. Betteridge, B. Kisiel, B. Settles, E.R. Hruschka, T.M. Mitchell, Toward an architecture for never-ending language learning, in: T wenty-Fourth
+AAAI Conference on Artiﬁcial Intelligence, 2010..
+[4]D. Vrandec ˇic´, M. Krötzsch, Wikidata: a free collaborative knowledge base, Commun. ACM 57 (10) (2014) 78–85 .
+[5]K. Bollacker, C. Evans, P. Paritosh, T. Sturge, J. Taylor, Freebase: a collaboratively created graph database for structuring human knowledge, in:
+Proceedings of the 2008 ACM SIGMOD international conference on Management of data, 2008, pp. 1247–1250 .
+[6]G.A. Miller, WordNet: a lexical database for english, Commun. ACM 38 (11) (1995) 39–41 .
+[7]S. Shin, K. Lee, Processing knowledge graph-based complex questions through question decomposition and recomposition, Inf. Sci. 523 (2020) 234–
+244.Table 7
+Triple classiﬁcation on FB13 in a closed-world setting (O-O-O pattern). Best results are in boldface.
+Accuracy (%)
+TransR 82.5
+TransD 89.1TransE 87.6
+TransE-comp 87.6
+NTN 87.2Bilinear-comp 86.1KG2E 85.3TransH 83.3TransE-NMM 88.6
+IKGE
+NoFFIE 89.1
+IKGE 90.3B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+483
+
+[8]X. Guo, W. Lin, Y. Li, Z. Liu, L. Yang, S. Zhao, Z. Zhu, DKEN: deep knowledge-enhanced network for recommender systems, Inf. Sci. 540 (2020) 263–277 .
+[9]Z. Lin, L. Feng, R. Yin, C. Xu, C.K. Kwoh, GLIMG: global and local item graphs for top-n recommender systems, Inf. Sci. 580 (2021) 1–14 .
+[10] R. Zhang, Y. Mao, W. Zhao, Knowledge graphs completion via probabilistic reasoning, Inf. Sci. 521 (2020) 144–159 .
+[11] N. Shanavas, H. Wang, Z. Lin, G.I. Hawe, Ontology-based enriched concept graphs for medical document classiﬁcation, Inf. Sci. 525 (2020) 172–181 .
+[12] D. Wang, H. Fan, J. Liu, Learning with joint cross-document information via multi-task learning for named entity recognition, Inf. Sci. 579 (2021) 45 4–
+467.
+[13] E. Amador-Domínguez, E. Serrano, D. Manrique, P. Hohenecker, T. Lukasiewicz, An ontology-based deep learning approach for triple classiﬁcation wi th
+out-of-knowledge-base entities, Inf. Sci. 564 (2021) 85–102 .
+[14] B. Shi, T. Weninger, Open-world knowledge graph completion, AAAI (2018) .
+[15] R. Xie, Z. Liu, J. Jia, H. Luan, M. Sun, Representation learning of knowledge graphs with entity descriptions, AAAI (2016) 2659–2665 .
+[16] M. Nickel, K. Murphy, V. Tresp, E. Gabrilovich, A review of relational machine learning for knowledge graphs, Proc. IEEE 104 (1) (2016) 11–33 .
+[17] A. Neelakantan, B. Roth, A. McCallum, Compositional vector space models for knowledge base completion, ACL (2015) 156–166 .
+[18] S. Mazumder, N. Ma, B. Liu, Towards a continuous knowledge learning engine for chatbots, arXiv preprint arXiv:1802.06024..
+[19] W. Hamilton, Z. Ying, J. Leskovec, Inductive representation learning on large graphs, NIPS (2017) 1024–1034 .
+[20] W.L. Hamilton, R. Ying, J. Leskovec, Representation learning on graphs: Methods and applications, arXiv preprint arXiv:1709.05584..
+[21] Q. Wang, Z. Mao, B. Wang, L. Guo, Knowledge graph embedding: A survey of approaches and applications, IEEE Trans. Knowl. Data Eng. 29 (12) (2017)
+2724–2743 .
+[22] T. Hayashi, H. Fujita, Cluster-based zero-shot learning for multivariate data, J. Ambient Intell. Humanized Comput..
+[23] B. Perozzi, R. Al-Rfou, S. Skiena, DeepWalk: Online learning of social representations, SIGKDD (2014) 701–710 .
+[24] A. Grover, J. Leskovec, node2vec: Scalable feature learning for networks, in: KDD, 2016, pp. 855–864..
+[25] J. Tang, M. Qu, M. Wang, M. Zhang, J. Yan, Q. Mei, Line: Large-scale information network embedding, WWW (2015) 1067–1077 .
+[26] A. Bordes, N. Usunier, A. García-Durán, J. Weston, O. Yakhnenko, Translating embeddings for modeling multi-relational data, NIPS (2013) 2787–2795 .
+[27] B. Yang, W.T. Yih, X. He, J. Gao, L. Deng, Embedding entities and relations for learning and inference in knowledge bases, in: ICLR, 2015..
+[28] T. Trouillon, J. Welbl, S. Riedel, É. Gaussier, G. Bouchard, Complex embeddings for simple link prediction, in: ICML, 2016, pp. 2071–2080..
+[29] B. Oh, S. Seo, K.H. Lee, Knowledge graph completion by context-aware convolutional learning with multi-hop neighborhoods, in: Proceedings of the
+27th ACM International Conference on Information and Knowledge Management, ACM, 2018, pp. 257–266 .
+[30] M. Niepert, M. Ahmed, K. Kutzkov, Learning convolutional neural networks for graphs, in: ICML, 2016, pp. 2014–2023..
+[31] J. Bruna, W. Zaremba, A. Szlam, Y. LeCun, Spectral networks and locally connected networks on graphs, in: ICLR, 2014..
+[32] T.N. Kipf, M. Welling, Semi-supervised classiﬁcation with graph convolutional networks, ICLR (2017) .
+[33] M. Schlichtkrull, T.N. Kipf, P. Bloem, R.V.D. Berg, I. Titov, M. Welling, Modeling relational data with graph convolutional networks, ESWC (2018) 59 3–
+607.
+[34] D. Bahdanau, K. Cho, Y. Bengio, Neural machine translation by jointly learning to align and translate, in: ICLR, 2015..
+[35] M.T. Luong, H. Pham, C.D. Manning, Effective approaches to attention-based neural machine translation, in: EMNLP, 2015..
+[36] I. Sutskever, O. Vinyals, Q.V. Le, Sequence to sequence learning with neural networks, NIPS (2014) 3104–3112 .
+[37] C. dos Santos, M. Tan, B. Xiang, B. Zhou, Attentive pooling networks, arXiv preprint arXiv:1602.03609..
+[38] W. Yin, H. Schütze, B. Xiang, B. Zhou, Abcnn: Attention-based convolutional neural network for modeling sentence pairs, TACL 4 (2016) 259–272 .
+[39] S. Hochreiter, J. Schmidhuber, Long short-term memory, Neural Comput. 9 (8) (1997) 1735–1780 .
+[40] Y. Kim, Convolutional neural networks for sentence classiﬁcation, EMNLP (2014) 1746–1751 .
+[41] Z. Lin, M. Feng, C.N. dos Santos, M. Yu, B. Xiang, B. Zhou, Y. Bengio, A structured self-attentive sentence embedding, ICLR (2017) .
+[42] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A.N. Gomez, Ł. Kaiser, I. Polosukhin, Attention is all you need, NIPS (2017) 5998–6008 .
+[43] J. Cheng, L. Dong, M. Lapata, Long short-term memory-networks for machine reading, in: EMNLP, 2016..[44] P. Velickovic, G. Cucurull, A. Casanova, A. Romero, P. Lio, Y. Bengio, Graph attention networks, in: ICLR, 2017..
+[45] B.L. Douglas, The weisfeiler-lehman method and graph isomorphism testing, arXiv preprint arXiv:1101.5211..
+[46]
+R. Socher, D. Chen, C.D. Manning, A. Ng, Reasoning with neural tensor networks for knowledge base completion, NIPS (2013) 926–934 .
+[47] H. Shah, J. Villmow, A. Ulges, U. Schwanecke, F. Shafait, An open-world extension to knowledge graph completion models, in: Proceedings of the AA AI
+Conference on Artiﬁcial Intelligence, Vol. 33, 2019, pp. 3044–3051..
+[48] I. Yamada, A. Asai, J. Sakuma, H. Shindo, H. Takeda, Y. Takefuji, Y. Matsumoto, Wikipedia2Vec: An efﬁcient toolkit for learning and visualizing the
+embeddings of words and entities from Wikipedia, in: Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing:
+System Demonstrations, Association for Computational Linguistics, 2020, pp. 23–30 .
+[49] D.Q. Nguyen, An overview of embedding models of entities and relationships for knowledge base completion, arXiv preprint arXiv:1703.08098..
+[50] D.Q. Nguyen, K. Sirts, L. Qu, M. Johnson, Neighborhood mixture model for knowledge base completion, CoNLL (2016) 40–50 .B. Oh, S. Seo, J. Hwang et al. Information Sciences 586 (2022) 468–484
+484

@@ -23,12 +23,13 @@ import urllib.parse
 import random
 from tqdm import tqdm
 from collections import defaultdict
+from dbo_hierarchy import get_all_types
 
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
-DATA_DIR = "dbpedia_raw"
-OUTPUT_DIR = "data/DBPedia50k+"
+DATA_DIR = "/workspace/ikge/dbpedia_raw"
+OUTPUT_DIR = "/workspace/data/DBPedia50k+"
 
 # Using older 2016-10 DBPedia dumps as they were standard for 2018-2021 papers
 URLS = {
@@ -163,6 +164,14 @@ def run_pipeline():
         print("\nLoading cached entity data (Pass 1 & 2)...")
         with open(abstracts_cache, "rb") as f: entity_descriptions = pickle.load(f)
         with open(types_cache,     "rb") as f: entity_types        = pickle.load(f)
+        # Detect old format (str per entity) → upgrade to list format in-place
+        # and flush the updated cache so subsequent runs skip this upgrade.
+        _sample_val = next(iter(entity_types.values())) if entity_types else []
+        if isinstance(_sample_val, str):
+            print("  Detected old single-type cache format — upgrading to list format...")
+            entity_types = defaultdict(list, {k: [v] for k, v in entity_types.items()})
+            with open(types_cache, "wb") as _f: pickle.dump(dict(entity_types), _f, protocol=4)
+            print("  Cache updated.")
         print(f"  {len(entity_descriptions):,} descriptions  |  {len(entity_types):,} typed entities")
     else:
         print("\n--- Pass 1: Scanning Abstracts ---")
@@ -177,7 +186,7 @@ def run_pipeline():
         print(f"  {len(entity_descriptions):,} entities with descriptions.")
 
         print("\n--- Pass 2: Scanning Types ---")
-        entity_types = {}
+        entity_types: dict[str, list[str]] = defaultdict(list) # Changed to store list of types
         with _open_bz2(FILES["types"]) as f:
             for line in tqdm(f, desc="Types", unit=" lines", mininterval=1.0):
                 if line[0] != '<':
@@ -185,12 +194,32 @@ def run_pipeline():
                 parts = line.split(' ', 3)
                 if len(parts) >= 3:
                     subj = clean_uri(parts[0])
+                    obj_type = clean_uri(parts[2].rsplit(' ', 1)[0])  # strip trailing " ."
                     if subj in entity_descriptions:
-                        entity_types[subj] = clean_uri(parts[2])
-        print(f"  {len(entity_types):,} entities with type + description.")
+                        entity_types[subj].append(obj_type)
+        print(f"  {len(entity_types):,} entities with descriptions and types.")
 
         with open(abstracts_cache, "wb") as f: pickle.dump(entity_descriptions, f, protocol=4)
         with open(types_cache,     "wb") as f: pickle.dump(entity_types,        f, protocol=4)
+
+    # ------------------------------------------------------------------
+    # Expand each entity's leaf type to the full ancestor chain using the
+    # hardcoded DBPedia ontology hierarchy (compensates for
+    # instance_types_en.ttl.bz2 storing only the most-specific leaf type).
+    # ------------------------------------------------------------------
+    _expanded_count = 0
+    for _ent in entity_types:
+        _orig = list(entity_types[_ent])
+        _full = set()
+        for _t in _orig:
+            _full.update(get_all_types(_t))   # leaf + all dbo: ancestors
+        if len(_full) > len(_orig):
+            _expanded_count += 1
+        entity_types[_ent] = [t for t in _full if not t.startswith("owl:") and t != "dbo:Thing"]
+
+    print(f"  Type hierarchy expansion: {_expanded_count:,} / {len(entity_types):,} entities gained ancestor types.")
+    # Persist expanded types so subsequent runs don't redo the work
+    with open(types_cache, "wb") as _f: pickle.dump(dict(entity_types), _f, protocol=4)
 
     valid_entities = set(entity_types.keys())
 
@@ -303,8 +332,10 @@ def run_pipeline():
         key = (h_in, r_in, t_in)
         if key in cat:
             cat[key].append((subj, rel, obj))
-        rel2domain[rel].add(entity_types.get(subj, "dbo:Thing"))
-        rel2range[rel].add(entity_types.get(obj,  "dbo:Thing"))
+        for _t in entity_types.get(subj, ["dbo:Thing"]):
+            rel2domain[rel].add(_t)
+        for _t in entity_types.get(obj, ["dbo:Thing"]):
+            rel2range[rel].add(_t)
 
     for key, triples in cat.items():
         print(f"  {key}: {len(triples):,} triples")
@@ -364,7 +395,9 @@ def run_pipeline():
 
     with open(os.path.join(OUTPUT_DIR, "entity2type.txt"), "w", encoding="utf-8") as f:
         for ent in sampled_entities:
-            f.write(f"{ent}\t{entity_types[ent]}\n")
+            # Write each type on a separate line for multi-type entities
+            for typ in entity_types.get(ent, []):
+                f.write(f"{ent}\t{typ}\n")
 
     with open(os.path.join(OUTPUT_DIR, "relation2constraint.txt"), "w", encoding="utf-8") as f:
         for rel in sampled_relations:

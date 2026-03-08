@@ -948,15 +948,12 @@ def _main(fraction: float = 1.0, ts: str = ""):
     #   to learn content-based discrimination, which also generalises at eval time.
     # -----------------------------------------------------------------------
     print("\nStarting Training Loop...")
-    best_mrr             = 0.0
-    best_loss_below07    = float('inf')   # best loss that fell under 0.7
-    window_best_loss     = float('inf')   # best loss in the current eval window
-    prev_window_best     = float('inf')   # best loss in the previous eval window
-    n_train              = len(train_triples)
+    best_mrr         = 0.0
+    window_best_loss = float('inf')   # best loss in the current eval window
+    n_train          = len(train_triples)
 
-    weights_path_mrr  = str(output_dir / f"ikge_best_mrr_{ts}.pt")
-    weights_path_loss = str(output_dir / f"ikge_best_loss_{ts}.pt")
-    report_path       = str(output_dir / f"ikge_evaluation_report_{ts}.pdf")
+    weights_path_mrr = str(output_dir / f"ikge_best_mrr_{ts}.pt")
+    report_path      = str(output_dir / f"ikge_evaluation_report_{ts}.pdf")
 
     diag_pos: list = []   # score-diagnostic accumulators (reset every 10 epochs)
     diag_neg: list = []
@@ -1022,27 +1019,13 @@ def _main(fraction: float = 1.0, ts: str = ""):
         if loss_for_log < window_best_loss:
             window_best_loss = loss_for_log
 
-        # Save whenever loss sets a new best below 0.7 (independent of eval schedule)
-        if loss_for_log < 0.7 and loss_for_log < best_loss_below07:
-            best_loss_below07 = loss_for_log
-            torch.save(model.state_dict(), weights_path_loss)
-            print(f"  [Loss ckpt] New best loss {loss_for_log:.4f} → {weights_path_loss}")
-
         # -- Periodic validation (unconditional – always run to catch MRR gains) --
         is_final_epoch = (epoch + 1 == epochs)
         if (epoch + 1) % eval_every == 0 and not is_final_epoch:
             lr_now = optimizer.param_groups[0]['lr']
             print(f"\n[Epoch {epoch+1}/{epochs}] Running validation "
                   f"(window best loss {window_best_loss:.4f})...")
-
-            # Evaluate with the best-loss checkpoint if one has been saved.
-            eval_weights = weights_path_loss if Path(weights_path_loss).exists() \
-                           else None
-            current_state = {k: v.clone() for k, v in model.state_dict().items()}
-            if eval_weights:
-                model.load_state_dict(
-                    torch.load(eval_weights, map_location=device, weights_only=True))
-                print(f"  (evaluating with best-loss checkpoint: {Path(eval_weights).name})")
+            window_best_loss = float('inf')   # reset window
 
             model.eval()
             mrr = evaluate_model(
@@ -1064,8 +1047,6 @@ def _main(fraction: float = 1.0, ts: str = ""):
                 best_mrr = mrr
                 torch.save(model.state_dict(), weights_path_mrr)
                 print(f"  Saved best MRR weights! MRR: {mrr:.4f} → {weights_path_mrr}")
-            # Restore current training weights so optimizer state stays valid.
-            model.load_state_dict(current_state)
             print(f"Epoch {epoch+1:4d}/{epochs} | Loss: {loss_for_log:.4f} "
                   f"| Val MRR: {mrr:.4f} | LR: {lr_now:.2e}")
         else:
@@ -1075,10 +1056,8 @@ def _main(fraction: float = 1.0, ts: str = ""):
     # 10. Final evaluation on the full test set using the best checkpoint
     # -----------------------------------------------------------------------
     # Prefer best-MRR weights for final eval; fall back to best-loss weights.
-    final_weights = weights_path_mrr if Path(weights_path_mrr).exists() else weights_path_loss
-
-    print(f"\nLoading best weights for final test evaluation ({Path(final_weights).name})...")
-    model.load_state_dict(torch.load(final_weights, map_location=device, weights_only=True))
+    print(f"\nLoading best weights for final test evaluation ({Path(weights_path_mrr).name})...")
+    model.load_state_dict(torch.load(weights_path_mrr, map_location=device, weights_only=True))
 
     print("Running Final Test Evaluation on full test set...")
     test_mrr = evaluate_model(
@@ -1100,10 +1079,8 @@ def _main(fraction: float = 1.0, ts: str = ""):
     print("Training Complete")
     print(f"Best Validation MRR : {best_mrr:.4f}")
     print(f"Final Test MRR      : {test_mrr:.4f}")
-    print(f"Best loss (<0.7)    : {best_loss_below07:.4f}" if best_loss_below07 < float('inf') else "Best loss (<0.7)    : none reached")
     print(f"Report generated    : {report_path}")
     print(f"MRR weights         : {weights_path_mrr}")
-    print(f"Loss weights        : {weights_path_loss}")
     print("="*80)
 
 if __name__ == "__main__":

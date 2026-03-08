@@ -1,0 +1,153 @@
+Logging to: /workspace/ikge/logs/train_20260304_173631.log
+================================================================================
+Initializing IKGE DBPedia50k+ Pipeline
+================================================================================
+Using device: cuda
+In-KG entities: 24,158  |  In-KG relations: 326
+Entities: 29851 | Relations: 393 | Types: 219
+================================================================================
+🚀 SETTING UP WIKIPEDIA2VEC EMBEDDINGS FOR IKGE
+================================================================================
+✅ Wikipedia2Vec model already exists: /workspace/ikge/embeddings/enwiki_20180420_300d.pkl  (10592.4 MB)
+
+📖 Loading Wikipedia2Vec model from: /workspace/ikge/embeddings/enwiki_20180420_300d.pkl
+   (this may take up to 60 s for the 300-dim model…)
+/venv/main/lib/python3.12/site-packages/joblib/numpy_pickle.py:255: UserWarning: The memmapped array [[-0.19859965 -0.06816383 -0.2850264  ...  0.07715177 -0.02776821
+  -0.19740711]
+ [ 0.03841671  0.01440218 -0.1375614  ... -0.18214722 -0.09775238
+  -0.0422857 ]
+ [-0.03071893 -0.20647831 -0.04814052 ... -0.00819415  0.27764547
+   0.00785921]
+ ...
+ [-0.2674111  -0.11572331  0.37102547 ... -0.32288942 -0.05453032
+  -0.3473579 ]
+ [-0.40238228 -0.38080338  0.48129007 ... -0.0611211   0.07728622
+  -0.29644254]
+ [-0.48830998 -0.47115543  0.40146536 ... -0.12565771  0.08179317
+  -0.51060534]] loaded from the file /workspace/ikge/embeddings/enwiki_20180420_300d.pkl is not byte aligned. This may cause segmentation faults if this memmapped array is used in some libraries like BLAS or PyTorch. To get rid of this warning, regenerate your pickle file with joblib >= 1.2.0. See https://github.com/joblib/joblib/issues/563 for more details
+  warnings.warn(message)
+/venv/main/lib/python3.12/site-packages/joblib/numpy_pickle.py:255: UserWarning: The memmapped array [[262 221]
+ [132 108]
+ [124 104]
+ ...
+ [  0   0]
+ [  0   0]
+ [  0   0]] loaded from the file /workspace/ikge/embeddings/enwiki_20180420_300d.pkl is not byte aligned. This may cause segmentation faults if this memmapped array is used in some libraries like BLAS or PyTorch. To get rid of this warning, regenerate your pickle file with joblib >= 1.2.0. See https://github.com/joblib/joblib/issues/563 for more details
+  warnings.warn(message)
+/venv/main/lib/python3.12/site-packages/joblib/numpy_pickle.py:255: UserWarning: The memmapped array [[769702 380730]
+ [649936 302186]
+ [869658 382059]
+ ...
+ [     0      0]
+ [     0      0]
+ [     0      0]] loaded from the file /workspace/ikge/embeddings/enwiki_20180420_300d.pkl is not byte aligned. This may cause segmentation faults if this memmapped array is used in some libraries like BLAS or PyTorch. To get rid of this warning, regenerate your pickle file with joblib >= 1.2.0. See https://github.com/joblib/joblib/issues/563 for more details
+  warnings.warn(message)
+/venv/main/lib/python3.12/site-packages/joblib/numpy_pickle.py:255: UserWarning: The memmapped array [[ 0.21029902  0.05826605 -0.27758923 ...  0.21364368  0.04810811
+  -0.07416727]
+ [ 0.4951587  -0.0434092  -0.17233759 ... -0.09854957 -0.04792332
+   0.01560217]
+ [ 0.6099933   0.08147126 -0.1923153  ... -0.07382192  0.1638102
+   0.09583921]
+ ...
+ [ 0.74131036  0.15711567  0.90952504 ... -0.22228944  0.1154005
+  -0.07609937]
+ [ 0.62899005 -0.156962    0.88964903 ...  0.11200976  0.01183067
+  -0.2746577 ]
+ [ 0.64734566 -0.11931765  0.7513795  ...  0.12819664  0.03800331
+  -0.6346609 ]] loaded from the file /workspace/ikge/embeddings/enwiki_20180420_300d.pkl is not byte aligned. This may cause segmentation faults if this memmapped array is used in some libraries like BLAS or PyTorch. To get rid of this warning, regenerate your pickle file with joblib >= 1.2.0. See https://github.com/joblib/joblib/issues/563 for more details
+  warnings.warn(message)
+✅ Wikipedia2Vec model loaded.
+
+📚 Building vocabulary from 86,062 descriptions…
+Tokenising:   0%|          | 0/86062 [00:00<?, ?it/s]Tokenising:   1%|          | 679/86062 [00:00<00:12, 6780.74it/s]Tokenising:   2%|▏         | 1377/86062 [00:00<00:12, 6894.23it/s]Tokenising:   2%|▏         | 2067/86062 [00:00<00:12, 6775.43it/s]Tokenising:   3%|▎         | 2756/86062 [00:00<00:12, 6817.97it/s]Tokenising:   4%|▍         | 3461/86062 [00:00<00:11, 6898.96it/s]Tokenising:   5%|▍         | 4152/86062 [00:00<00:11, 6842.09it/s]Tokenising:   6%|▌         | 4841/86062 [00:00<00:11, 6856.19it/s]Tokenising:   6%|▋         | 5527/86062 [00:00<00:11, 6834.19it/s]Tokenising:   7%|▋         | 6211/86062 [00:00<00:11, 6760.32it/s]Tokenising:   8%|▊         | 6901/86062 [00:01<00:11, 6800.93it/s]Tokenising:   9%|▉         | 7582/86062 [00:01<00:11, 6777.25it/s]Tokenising:  10%|▉         | 8281/86062 [00:01<00:11, 6840.94it/s]Tokenising:  10%|█         | 8976/86062 [00:01<00:11, 6873.52it/s]Tokenising:  11%|█         | 9664/86062 [00:01<00:11, 6834.76it/s]Tokenising:  12%|█▏        | 10367/86062 [00:01<00:10, 6892.65it/s]Tokenising:  13%|█▎        | 11057/86062 [00:01<00:10, 6885.52it/s]Tokenising:  14%|█▎        | 11746/86062 [00:01<00:10, 6870.75it/s]Tokenising:  14%|█▍        | 12434/86062 [00:01<00:10, 6826.16it/s]Tokenising:  15%|█▌        | 13117/86062 [00:01<00:10, 6749.06it/s]Tokenising:  16%|█▌        | 13793/86062 [00:02<00:10, 6650.34it/s]Tokenising:  17%|█▋        | 14460/86062 [00:02<00:10, 6654.45it/s]Tokenising:  18%|█▊        | 15147/86062 [00:02<00:10, 6714.04it/s]Tokenising:  18%|█▊        | 15824/86062 [00:02<00:10, 6727.14it/s]Tokenising:  19%|█▉        | 16509/86062 [00:02<00:10, 6759.57it/s]Tokenising:  20%|█▉        | 17186/86062 [00:02<00:10, 6671.22it/s]Tokenising:  21%|██        | 17858/86062 [00:02<00:10, 6682.47it/s]Tokenising:  22%|██▏       | 18529/86062 [00:02<00:10, 6687.56it/s]Tokenising:  22%|██▏       | 19198/86062 [00:02<00:10, 6665.64it/s]Tokenising:  23%|██▎       | 19883/86062 [00:02<00:09, 6720.07it/s]Tokenising:  24%|██▍       | 20556/86062 [00:03<00:09, 6709.91it/s]Tokenising:  25%|██▍       | 21237/86062 [00:03<00:09, 6738.05it/s]Tokenising:  25%|██▌       | 21927/86062 [00:03<00:09, 6786.22it/s]Tokenising:  26%|██▋       | 22606/86062 [00:03<00:09, 6753.69it/s]Tokenising:  27%|██▋       | 23282/86062 [00:03<00:09, 6714.95it/s]Tokenising:  28%|██▊       | 23969/86062 [00:03<00:09, 6760.13it/s]Tokenising:  29%|██▊       | 24646/86062 [00:03<00:09, 6710.99it/s]Tokenising:  29%|██▉       | 25318/86062 [00:03<00:09, 6699.37it/s]Tokenising:  30%|███       | 25989/86062 [00:03<00:09, 6657.03it/s]Tokenising:  31%|███       | 26677/86062 [00:03<00:08, 6722.38it/s]Tokenising:  32%|███▏      | 27350/86062 [00:04<00:08, 6669.70it/s]Tokenising:  33%|███▎      | 28018/86062 [00:04<00:08, 6655.28it/s]Tokenising:  33%|███▎      | 28690/86062 [00:04<00:08, 6671.49it/s]Tokenising:  34%|███▍      | 29371/86062 [00:04<00:08, 6712.06it/s]Tokenising:  35%|███▍      | 30057/86062 [00:04<00:08, 6756.09it/s]Tokenising:  36%|███▌      | 30741/86062 [00:04<00:08, 6780.92it/s]Tokenising:  37%|███▋      | 31420/86062 [00:04<00:08, 6760.28it/s]Tokenising:  37%|███▋      | 32097/86062 [00:04<00:08, 6743.41it/s]Tokenising:  38%|███▊      | 32772/86062 [00:04<00:07, 6728.46it/s]Tokenising:  39%|███▉      | 33460/86062 [00:04<00:07, 6771.74it/s]Tokenising:  40%|███▉      | 34138/86062 [00:05<00:07, 6733.60it/s]Tokenising:  40%|████      | 34812/86062 [00:05<00:07, 6725.15it/s]Tokenising:  41%|████      | 35485/86062 [00:05<00:07, 6711.90it/s]Tokenising:  42%|████▏     | 36157/86062 [00:05<00:07, 6548.09it/s]Tokenising:  43%|████▎     | 36815/86062 [00:05<00:07, 6556.11it/s]Tokenising:  44%|████▎     | 37490/86062 [00:05<00:07, 6613.08it/s]Tokenising:  44%|████▍     | 38173/86062 [00:05<00:07, 6676.27it/s]Tokenising:  45%|████▌     | 38849/86062 [00:05<00:07, 6701.14it/s]Tokenising:  46%|████▌     | 39522/86062 [00:05<00:06, 6709.69it/s]Tokenising:  47%|████▋     | 40194/86062 [00:05<00:06, 6705.69it/s]Tokenising:  48%|████▊     | 40883/86062 [00:06<00:06, 6759.58it/s]Tokenising:  48%|████▊     | 41569/86062 [00:06<00:06, 6789.23it/s]Tokenising:  49%|████▉     | 42260/86062 [00:06<00:06, 6824.52it/s]Tokenising:  50%|████▉     | 42943/86062 [00:06<00:06, 6807.55it/s]Tokenising:  51%|█████     | 43624/86062 [00:06<00:06, 6721.84it/s]Tokenising:  52%|█████▏    | 44344/86062 [00:06<00:06, 6863.55it/s]Tokenising:  52%|█████▏    | 45031/86062 [00:06<00:06, 6785.12it/s]Tokenising:  53%|█████▎    | 45710/86062 [00:06<00:05, 6759.86it/s]Tokenising:  54%|█████▍    | 46387/86062 [00:06<00:05, 6717.01it/s]Tokenising:  55%|█████▍    | 47074/86062 [00:06<00:05, 6760.29it/s]Tokenising:  56%|█████▌    | 47765/86062 [00:07<00:05, 6801.62it/s]Tokenising:  56%|█████▋    | 48446/86062 [00:07<00:05, 6766.53it/s]Tokenising:  57%|█████▋    | 49129/86062 [00:07<00:05, 6784.64it/s]Tokenising:  58%|█████▊    | 49808/86062 [00:07<00:05, 6778.72it/s]Tokenising:  59%|█████▊    | 50496/86062 [00:07<00:05, 6808.47it/s]Tokenising:  59%|█████▉    | 51177/86062 [00:07<00:05, 6760.66it/s]Tokenising:  60%|██████    | 51854/86062 [00:07<00:05, 6732.52it/s]Tokenising:  61%|██████    | 52528/86062 [00:07<00:05, 6643.60it/s]Tokenising:  62%|██████▏   | 53204/86062 [00:07<00:04, 6677.87it/s]Tokenising:  63%|██████▎   | 53881/86062 [00:07<00:04, 6700.70it/s]Tokenising:  63%|██████▎   | 54552/86062 [00:08<00:04, 6663.72it/s]Tokenising:  64%|██████▍   | 55219/86062 [00:08<00:04, 6571.30it/s]Tokenising:  71%|███████▏  | 61473/86062 [00:08<00:01, 23079.07it/s]Tokenising:  87%|████████▋ | 74897/86062 [00:08<00:00, 56031.22it/s]Tokenising: 100%|██████████| 86062/86062 [00:08<00:00, 10149.13it/s]
+✅ Vocabulary built:
+   Unique words   : 131,124
+   Vocab size     : 131,126
+Building embedding matrix:   0%|          | 0/131126 [00:00<?, ?it/s]Building embedding matrix:  11%|█         | 14083/131126 [00:00<00:00, 140825.77it/s]Building embedding matrix:  21%|██▏       | 28166/131126 [00:00<00:00, 139414.33it/s]Building embedding matrix:  32%|███▏      | 42109/131126 [00:00<00:00, 137918.41it/s]Building embedding matrix:  43%|████▎     | 55903/131126 [00:00<00:00, 137279.28it/s]Building embedding matrix:  53%|█████▎    | 69632/131126 [00:00<00:00, 136680.48it/s]Building embedding matrix:  64%|██████▎   | 83301/131126 [00:00<00:00, 136210.19it/s]Building embedding matrix:  74%|███████▍  | 96923/131126 [00:00<00:00, 135398.13it/s]Building embedding matrix:  84%|████████▍ | 110510/131126 [00:00<00:00, 135543.86it/s]Building embedding matrix:  95%|█████████▍| 124065/131126 [00:00<00:00, 135363.73it/s]Building embedding matrix: 100%|██████████| 131126/131126 [00:00<00:00, 136308.77it/s]
+
+📊 Embedding Matrix Statistics:
+   Vocabulary size          : 131,126
+   Words found in W2V model : 112,799 (86.0%)
+   Words using Kaiming init : 18,327
+
+================================================================================
+✅ WIKIPEDIA2VEC SETUP COMPLETE!
+================================================================================
+
+📦 Ready to use:
+   - embedding_matrix : shape torch.Size([131126, 300])
+   - word2idx         : 131,126 words
+   - W2V coverage     : 86.0%
+
+Building Line Graph...
+📊 Line Graph Info:
+   Number of facts (nodes): 32,388
+
+🔨 Building line graph...
+   Step 1: Indexing facts by entities...
+      Found 24,158 unique entities
+      Avg facts per entity: 2.7
+   Step 2: Finding adjacent facts...
+Finding edges:   0%|          | 0/24158 [00:00<?, ?it/s]Finding edges:   0%|          | 48/24158 [00:00<01:18, 305.54it/s]Finding edges:   3%|▎         | 679/24158 [00:00<00:07, 3145.90it/s]Finding edges:  15%|█▍        | 3508/24158 [00:00<00:01, 13288.73it/s]Finding edges: 100%|██████████| 24158/24158 [00:00<00:00, 60924.18it/s]
+   Step 3: Creating edge tensor...
+
+✅ Line graph constructed!
+   Nodes (facts): 32,388
+   Edges (adjacent fact pairs): 1,596,943
+   Avg degree: 49.3
+   Density: 0.001522
+
+Pre-tokenizing entities and relations...
+Moving lookup tables to GPU...
+  Lookup tables on GPU.
+entity_to_facts: 24158 entities indexed over 32388 training facts.
+Pre-tokenization complete.
+  Trainable params: 1,277,197
+
+Starting Training Loop...
+  triple_to_fact_id built: 32388 entries.
+  Pre-generating fixed validation negatives...
+  Fixed val negatives: 399 pairs ready.
+  Type-matching diagnostic (checking training triples)...
+    Head entities with NO type: 0.0%
+    Tail entities with NO type: 0.0%
+    Relations with NO constraint: 0.0%
+    Head-domain match rate (flat intersection): 19.8%
+    Tail-range  match rate (flat intersection): 5.4%
+    Triples passing flat type check: 12.6%  (soft gate 0.1 floor ensures gradient flow for remaining 87.4%)
+Traceback (most recent call last):
+  File "/workspace/ikge/train_ikge_w2v.py", line 2013, in <module>
+    main(fraction=args.fraction, run_name=args.run_name,
+  File "/workspace/ikge/train_ikge_w2v.py", line 1427, in main
+    _main(fraction=fraction, ts=ts, epochs=epochs, eval_every=eval_every)
+  File "/workspace/ikge/train_ikge_w2v.py", line 1840, in _main
+    all_z = model.extract_fact_features(feat_tensors).float()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ikge/train_ikge_w2v.py", line 156, in extract_fact_features
+    return self.fact_extractor(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/venv/main/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/venv/main/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ikge/fact_feature_extractor.py", line 171, in forward
+    head_features = self._extract_entity_features(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/ikge/fact_feature_extractor.py", line 283, in _extract_entity_features
+    name_emb  = self.word_embeddings(other_entity_names)             # (batch, p, d)  U_t
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/venv/main/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/venv/main/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/venv/main/lib/python3.12/site-packages/torch/nn/modules/sparse.py", line 192, in forward
+    return F.embedding(
+           ^^^^^^^^^^^^
+  File "/venv/main/lib/python3.12/site-packages/torch/nn/functional.py", line 2546, in embedding
+    return torch.embedding(weight, input, padding_idx, scale_grad_by_freq, sparse)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 164.00 MiB. GPU 0 has a total capacity of 15.48 GiB of which 159.94 MiB is free. Process 7104 has 11.93 GiB memory in use. Including non-PyTorch memory, this process has 3.38 GiB memory in use. Of the allocated memory 3.00 GiB is allocated by PyTorch, and 225.85 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

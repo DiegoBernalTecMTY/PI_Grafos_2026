@@ -1,0 +1,10 @@
+Value type: list
+Sample entries:
+  'dbr:Anarchism' -> ['http://www.w3.org/2002/07/owl#Thing']
+  'dbr:Achilles' -> ['http://www.w3.org/2002/07/owl#Thing']
+  'dbr:Autism' -> ['dbo:Disease']
+  'dbr:Alabama' -> ['dbo:AdministrativeRegion']
+  'dbr:Abraham_Lincoln' -> ['dbo:OfficeHolder']
+Total entities: 3321534
+Multi-type entities: 0
+Sample multi-type entity:

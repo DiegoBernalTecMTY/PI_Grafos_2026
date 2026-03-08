@@ -82,6 +82,8 @@ class AttentiveAggregator(nn.Module):
             )
             self.attention_layers.append(attention_layer)
 
+        self.dropout = nn.Dropout(p=dropout)
+
         self.to(device)
     
     def forward(self,
@@ -160,16 +162,16 @@ class AttentiveAggregator(nn.Module):
         if source_facts.numel() == 0:
             return fact_features
         
-        # Get features for source and target facts
-        source_features = fact_features[source_facts]  # (num_edges, fact_emb_dim)
-        target_features = fact_features[target_facts]  # (num_edges, fact_emb_dim)
-        
-        # Apply attention transformation to target features
-        # Paper Equation 8: att_score_v = f_v^T * W_a^k * f_u
-        target_transformed = self.attention_layers[layer_idx](target_features)  # (num_edges, fact_emb_dim)
-        
-        # Compute attention scores: dot product between source and transformed target
-        attention_scores = (source_features * target_transformed).sum(dim=1)  # (num_edges,)
+        # Get features for source (parent, f_u) and target (neighbor, f_v) facts
+        source_features = fact_features[source_facts]  # (num_edges, d)  f_u
+        target_features = fact_features[target_facts]  # (num_edges, d)  f_v
+
+        # Paper Equation 8: ATSCORE_v = f_v^T W_a^k f_u
+        # W_a is applied to the SOURCE / PARENT fact f_u; then dot-product with f_v.
+        # (Applying W to the neighbor f_v instead would compute f_v^T W^T f_u,
+        #  which transposes the weight matrix and contradicts the paper.)
+        source_transformed = self.attention_layers[layer_idx](source_features)  # (num_edges, d)  W_a f_u
+        attention_scores = (target_features * source_transformed).sum(dim=1)    # (num_edges,)  f_v · W_a f_u
         
         # ====================================================================
         # Step 2: Normalize Attention Weights (Equation 7)
@@ -211,6 +213,7 @@ class AttentiveAggregator(nn.Module):
         #        f_u ← f̃_u
         # aggregated = tanh(Σ a_v * f_v) already computed above (Eq 9)
         updated = fact_features + aggregated
+        updated = self.dropout(updated)
 
         return updated
     
